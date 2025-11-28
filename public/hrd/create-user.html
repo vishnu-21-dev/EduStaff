@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HRD — Create User</title>
+
+  <script src="/assets/js/auth-client.js"></script>
+
+  <style>
+    :root {
+      --bg: #0f1724;
+      --card: #0b1220;
+      --muted: #9aa4b2;
+      --accent: #06b6d4
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: Inter, system-ui, Segoe UI, Roboto, Arial
+    }
+
+    body {
+      margin: 0;
+      background: linear-gradient(180deg, #071022 0%, var(--bg) 100%);
+      color: #e6eef6
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      min-height: 100vh
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, #031426 0%, #071428 100%);
+      padding: 20px;
+      border-right: 1px solid rgba(255, 255, 255, 0.03)
+    }
+
+    .brand {
+      font-weight: 700;
+      font-size: 18px;
+      margin-bottom: 18px
+    }
+
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 8px
+    }
+
+    .nav a {
+      color: var(--muted);
+      text-decoration: none;
+      padding: 10px;
+      border-radius: 8px
+    }
+
+    .nav a.active {
+      background: rgba(255, 255, 255, 0.03);
+      color: #fff
+    }
+
+    .main {
+      padding: 24px
+    }
+
+    .card {
+      background: var(--card);
+      padding: 18px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.02);
+      max-width: 760px
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 12px
+    }
+
+    label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px
+    }
+
+    input,
+    select,
+    textarea {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      padding: 10px;
+      border-radius: 8px;
+      color: inherit;
+      font-size: 14px
+    }
+
+    .row {
+      display: flex;
+      gap: 12px
+    }
+
+    .small {
+      width: 160px
+    }
+
+    .btn {
+      background: linear-gradient(90deg, var(--accent), #3b82f6);
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: none;
+      color: #021;
+      font-weight: 700;
+      cursor: pointer
+    }
+
+    .ghost {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      padding: 8px 10px;
+      border-radius: 8px;
+      color: var(--muted);
+      cursor: pointer
+    }
+
+    .note {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 8px
+    }
+
+    .err {
+      background: rgba(255, 50, 50, 0.06);
+      color: #ff9b9b;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      display: none
+    }
+
+    .success {
+      background: rgba(30, 200, 150, 0.06);
+      color: #b8ffdf;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      display: none
+    }
+
+    @media (max-width:880px) {
+      .row {
+        flex-direction: column
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">HRD Admin</div>
+      <nav class="nav">
+        <a href="/hrd/schedule-admin.html">Dashboard</a>
+        <a href="/hrd/hod-list.html">HODs</a>
+        <a href="/hrd/teacher-list.html">Teachers</a>
+        <a class="active" href="/hrd/create-user.html">Create User</a>
+        <a href="/login.html">Logout</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div>
+            <div style="font-weight:800;font-size:18px">Create New User</div>
+            <div class="note">Add teachers, HODs, or admins. Password will be sent to email if configured.</div>
+          </div>
+          <div style="font-size:13px;color:var(--muted)">v1</div>
+        </div>
+
+        <div id="err" class="err"></div>
+        <div id="ok" class="success"></div>
+
+        <div class="field">
+          <label for="empId">Employee ID</label>
+          <input id="empId" placeholder="e.g. T001" />
+        </div>
+
+        <div class="field">
+          <label for="name">Full name</label>
+          <input id="name" autocomplete="name" />
+        </div>
+
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" type="email" autocomplete="email" />
+        </div>
+
+        <div class="row">
+          <div class="field" style="flex:1">
+            <label for="role">Role</label>
+            <select id="role">
+              <option value="teacher">Teacher</option>
+              <option value="hod">HOD</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <div class="field small">
+            <label for="dept">Department</label>
+            <input id="dept" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="courses">Courses (comma separated)</label>
+          <input id="courses" placeholder="e.g. OS, DBMS" />
+        </div>
+
+        <div class="row" style="margin-top:6px">
+          <button id="createBtn" class="btn">Create User</button>
+          <button id="resetBtn" class="ghost">Reset</button>
+        </div>
+
+        <div class="note" style="margin-top:12px">If the backend route <code>/api/users</code> is not implemented yet,
+          this will show an error and provide a curl command to run for dev testing.</div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const errBox = document.getElementById('err')
+    const okBox = document.getElementById('ok')
+    const empIdEl = document.getElementById('empId')
+    const nameEl = document.getElementById('name')
+    const emailEl = document.getElementById('email')
+    const roleEl = document.getElementById('role')
+    const deptEl = document.getElementById('dept')
+    const coursesEl = document.getElementById('courses')
+    const createBtn = document.getElementById('createBtn')
+    const resetBtn = document.getElementById('resetBtn')
+
+    // API Helper
+    async function api(path, opts = {}) {
+      const token = localStorage.getItem('hrd_token')
+      if (!token) {
+        window.location.href = '/login.html'
+        return
+      }
+      const headers = opts.headers || {}
+      headers['Authorization'] = 'Bearer ' + token
+      opts.headers = headers
+      const res = await fetch(path, opts)
+      if (res.status === 401 || res.status === 403) {
+        localStorage.removeItem('hrd_token')
+        window.location.href = '/login.html'
+        return
+      }
+      const txt = await res.text()
+      try { return JSON.parse(txt) } catch (e) { return txt }
+    }
+
+    function showErr(msg) {
+      errBox.style.display = 'block'
+      errBox.textContent = msg
+      okBox.style.display = 'none'
+    }
+    function showOk(msg) {
+      okBox.style.display = 'block'
+      okBox.textContent = msg
+      errBox.style.display = 'none'
+    }
+    function clearMsgs() {
+      errBox.style.display = 'none'
+      okBox.style.display = 'none'
+      errBox.textContent = ''
+      okBox.textContent = ''
+    }
+
+    function serializePayload() {
+      const empId = empIdEl.value.trim()
+      const name = nameEl.value.trim()
+      const email = emailEl.value.trim()
+      const role = roleEl.value
+      const dept = deptEl.value.trim()
+      const courses = coursesEl.value.split(',').map(s => s.trim()).filter(Boolean)
+
+      // Map to backend expected fields
+      if (role === 'teacher') {
+        return { empId, fullName: name, email, phone: '', dept, dob: '', role, courses }
+      } else if (role === 'hod') {
+        return { name, email, dept, courses, exp: 0 }
+      } else {
+        return { name, email, role, dept, courses }
+      }
+    }
+
+    async function createUser() {
+      clearMsgs()
+      const role = roleEl.value
+      const payload = serializePayload()
+
+      if (role === 'teacher' && !payload.empId) { showErr('Employee ID required for teachers'); return }
+      if (!payload.name && !payload.fullName) { showErr('Name is required'); return }
+
+      createBtn.disabled = true
+      createBtn.textContent = 'Creating...'
+
+      let endpoint = '/api/users'
+      if (role === 'teacher') endpoint = '/api/teachers'
+      else if (role === 'hod') endpoint = '/api/hods'
+
+      try {
+        const res = await api(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+
+        if (!res || res.error) {
+          const em = (res && res.error) ? res.error : 'create failed'
+          showErr(em)
+          createBtn.disabled = false
+          createBtn.textContent = 'Create User'
+          return
+        }
+
+        showOk(`${role.charAt(0).toUpperCase() + role.slice(1)} created successfully`)
+        createBtn.disabled = false
+        createBtn.textContent = 'Create User'
+
+        // Reset form
+        empIdEl.value = ''
+        nameEl.value = ''
+        emailEl.value = ''
+        deptEl.value = ''
+        coursesEl.value = ''
+      } catch (e) {
+        showErr('network error or server missing')
+        createBtn.disabled = false
+        createBtn.textContent = 'Create User'
+      }
+    }
+
+    createBtn.addEventListener('click', createUser)
+    resetBtn.addEventListener('click', () => {
+      empIdEl.value = ''; nameEl.value = ''; emailEl.value = ''; deptEl.value = ''; coursesEl.value = ''; clearMsgs()
+    })
+  </script>
+
+</body>y
+
+</html>

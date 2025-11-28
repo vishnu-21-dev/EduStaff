@@ -1,0 +1,88 @@
+[
+  {
+    "id": 1,
+    "title": "Data Structures - Midterm",
+    "description": "Midterm exam for Data Structures (CS Year 2).",
+    "department": "Computer Science",
+    "course": "B.Tech CS",
+    "year": "2",
+    "date": "2025-12-05",
+    "startTime": "09:00",
+    "endTime": "12:00",
+    "createdBy": "admin",
+    "createdAt": "2025-11-01T10:00:00.000Z",
+    "updatedAt": "2025-11-01T10:00:00.000Z"
+  },
+  {
+    "id": 2,
+    "title": "Digital Electronics - Lab Schedule",
+    "description": "Weekly Digital Electronics lab sessions for ECE Year 3.",
+    "department": "Electronics",
+    "course": "B.Tech ECE",
+    "year": "3",
+    "date": "2025-12-01",
+    "startTime": "14:00",
+    "endTime": "17:00",
+    "createdBy": "meera.iyer",
+    "createdAt": "2025-11-10T09:30:00.000Z",
+    "updatedAt": "2025-11-10T09:30:00.000Z"
+  },
+  {
+    "id": 3,
+    "title": "Thermodynamics - Guest Lecture",
+    "description": "Guest lecture on applied thermodynamics.",
+    "department": "Mechanical",
+    "course": "B.Tech ME",
+    "year": "2",
+    "date": "2025-12-08",
+    "startTime": "11:00",
+    "endTime": "13:00",
+    "createdBy": "latha.menon",
+    "createdAt": "2025-11-12T08:00:00.000Z",
+    "updatedAt": "2025-11-12T08:00:00.000Z"
+  },
+  {
+    "id": 4,
+    "title": "Structural Analysis - Assignment Deadline",
+    "description": "Submission deadline for assignment 3.",
+    "department": "Civil",
+    "course": "B.Tech CE",
+    "year": "3",
+    "date": "2025-12-03",
+    "startTime": "00:00",
+    "endTime": "23:59",
+    "createdBy": "priya.nair",
+    "createdAt": "2025-11-20T07:00:00.000Z",
+    "updatedAt": "2025-11-20T07:00:00.000Z"
+  },
+  {
+    "id": 5,
+    "title": "OS - Practical Exam",
+    "description": "Operating Systems practical exam for CS Year 4.",
+    "department": "Computer Science",
+    "course": "B.Tech CS",
+    "year": "4",
+    "date": "2025-12-10",
+    "startTime": "10:00",
+    "endTime": "13:00",
+    "createdBy": "kavya.menon",
+    "createdAt": "2025-11-22T09:30:00.000Z",
+    "updatedAt": "2025-11-22T09:30:00.000Z"
+  },
+  {
+    "teacherId": 4,
+    "course": "OS",
+    "date": "2025-11-28",
+    "time": "9:00",
+    "room": "A520",
+    "id": 6
+  },
+  {
+    "teacherId": 9,
+    "course": "OS",
+    "date": "2025-11-28",
+    "time": "9:00",
+    "room": "A520",
+    "id": 7
+  }
+]

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Edit Profile — SNPSU HRD</title>
+<style>
+:root{--bg:#f6fbff;--card:#fff;--accent:#0b63d6;--muted:#6b7280}
+*{box-sizing:border-box;font-family:Inter,system-ui,Segoe UI,Roboto,Arial}
+body{margin:0;min-height:100vh;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px}
+.container{width:100%;max-width:920px;background:var(--card);border-radius:12px;padding:22px;box-shadow:0 10px 30px rgba(11,99,214,0.06)}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.brand{font-weight:700;color:var(--accent)}
+.grid{display:grid;grid-template-columns:1fr 340px;gap:20px}
+.card{background:linear-gradient(180deg,#fff,#fbfdff);padding:18px;border-radius:12px}
+.input{width:100%;padding:10px;border-radius:8px;border:1px solid #e6eefb;margin-bottom:12px;font-size:14px;background:#fff}
+.label{font-size:13px;color:var(--muted);margin-bottom:6px}
+.btn{padding:10px 14px;border-radius:8px;border:0;background:var(--accent);color:#fff;font-weight:700;cursor:pointer}
+.ghost{background:#fff;border:1px solid #e6eefb;color:var(--accent)}
+.note{font-size:13px;color:var(--muted)}
+.row{display:flex;gap:10px}
+.success{color:#059669;margin-top:8px}
+.error{color:#ef4444;margin-top:8px}
+.avatar{width:72px;height:72px;border-radius:12px;background:#eef6ff;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--accent);font-size:20px}
+.sideCard{display:flex;flex-direction:column;gap:12px;padding:12px}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div>
+      <div class="brand">SNPSU · HRD</div>
+      <div style="font-weight:600">Edit Profile</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="btn ghost" id="backBtn">Back</button>
+      <button class="btn" id="logoutBtn">Logout</button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <form id="editForm" autocomplete="off">
+        <div class="label">Employee ID</div>
+        <input id="empId" class="input" readonly />
+
+        <div class="label">Full name</div>
+        <input id="fullName" class="input" required />
+
+        <div class="row">
+          <div style="flex:1">
+            <div class="label">Email</div>
+            <input id="email" class="input" type="email" />
+          </div>
+          <div style="flex:1">
+            <div class="label">Phone</div>
+            <input id="phone" class="input" />
+          </div>
+        </div>
+
+        <div class="label">Department</div>
+        <input id="dept" class="input" />
+
+        <div class="label">Date of birth</div>
+        <input id="dobDate" class="input" type="date" />
+
+        <div style="display:flex;gap:10px;margin-top:8px">
+          <button type="submit" class="btn">Save changes</button>
+          <button type="button" class="btn ghost" id="cancelBtn">Cancel</button>
+        </div>
+
+        <div id="msg" class="note"></div>
+        <div id="error" class="error"></div>
+        <div id="success" class="success"></div>
+      </form>
+    </div>
+
+    <div class="card sideCard">
+      <div style="display:flex;gap:12px;align-items:center">
+        <div class="avatar" id="avatar">T</div>
+        <div>
+          <div id="nameDisplay" style="font-weight:700"></div>
+          <div id="roleDisplay" class="note"></div>
+        </div>
+      </div>
+
+      <div style="margin-top:8px">
+        <div style="font-weight:700">Quick actions</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+          <button class="btn ghost" id="viewAllBtn">View all teachers</button>
+          <button class="btn ghost" id="goDashboard">Go to dashboard</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  function toDDMMYYYY(dateStr){
+    if(!dateStr) return '';
+    const d = new Date(dateStr);
+    if(isNaN(d.getTime())) return '';
+    const dd = String(d.getDate()).padStart(2,'0');
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    const yyyy = d.getFullYear();
+    return dd+mm+yyyy;
+  }
+  function fromDDMMYYYY(dstr){
+    if(!dstr || typeof dstr !== 'string' || dstr.length!==8) return '';
+    const dd = dstr.slice(0,2), mm = dstr.slice(2,4), yyyy = dstr.slice(4);
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  function loadTeachers(){ try{const t=JSON.parse(localStorage.getItem('teachers')||'[]');return Array.isArray(t)?t:[]}catch(e){return[]} }
+  function saveTeachers(list){ localStorage.setItem('teachers', JSON.stringify(list)) }
+  function getLogged(){ try{return JSON.parse(localStorage.getItem('loggedInTeacher')||'null')}catch(e){return null} }
+
+  const logged = getLogged()
+  if(!logged){ location.href = './login.html'; return }
+
+  const teachers = loadTeachers()
+  const meIndex = teachers.findIndex(t => t.empId && t.empId.toLowerCase() === logged.empId.toLowerCase())
+  if(meIndex === -1){ localStorage.removeItem('loggedInTeacher'); location.href = './login.html'; return }
+  const me = teachers[meIndex]
+
+  const empIdEl = document.getElementById('empId')
+  const fullNameEl = document.getElementById('fullName')
+  const emailEl = document.getElementById('email')
+  const phoneEl = document.getElementById('phone')
+  const deptEl = document.getElementById('dept')
+  const dobDateEl = document.getElementById('dobDate')
+  const avatarEl = document.getElementById('avatar')
+  const nameDisplay = document.getElementById('nameDisplay')
+  const roleDisplay = document.getElementById('roleDisplay')
+  const msgEl = document.getElementById('msg')
+  const errorEl = document.getElementById('error')
+  const successEl = document.getElementById('success')
+
+  empIdEl.value = me.empId || ''
+  fullNameEl.value = me.fullName || ''
+  emailEl.value = me.email || ''
+  phoneEl.value = me.phone || ''
+  deptEl.value = me.dept || ''
+  dobDateEl.value = fromDDMMYYYY(me.dob) || ''
+
+  avatarEl.textContent = (me.fullName || 'T').split(' ').map(s=>s[0]).slice(0,2).join('').toUpperCase()
+  nameDisplay.textContent = me.fullName || ''
+  roleDisplay.textContent = me.role || ''
+
+  document.getElementById('backBtn').addEventListener('click', ()=> location.href = './dashboard.html')
+  document.getElementById('logoutBtn').addEventListener('click', ()=> { localStorage.removeItem('loggedInTeacher'); location.href = './login.html' })
+  document.getElementById('cancelBtn').addEventListener('click', ()=> location.href = './dashboard.html')
+  document.getElementById('viewAllBtn').addEventListener('click', ()=> location.href = './dashboard.html')
+  document.getElementById('goDashboard').addEventListener('click', ()=> location.href = './dashboard.html')
+
+  document.getElementById('editForm').addEventListener('submit', e => {
+    e.preventDefault()
+    if(errorEl) errorEl.textContent = ''
+    if(successEl) successEl.textContent = ''
+    const fullName = (fullNameEl.value || '').trim()
+    const email = (emailEl.value || '').trim()
+    const phone = (phoneEl.value || '').trim()
+    const dept = (deptEl.value || '').trim()
+    const dobRaw = dobDateEl.value || ''
+
+    if(!fullName){
+      if(errorEl) errorEl.textContent = 'Name is required'
+      return
+    }
+
+    const dob = toDDMMYYYY(dobRaw)
+    if(dobRaw && dob.length !== 8){
+      if(errorEl) errorEl.textContent = 'Invalid DOB'
+      return
+    }
+
+    const updated = Object.assign({}, teachers[meIndex], {
+      fullName,
+      email,
+      phone,
+      dept,
+      dob: dob || teachers[meIndex].dob
+    })
+
+    teachers[meIndex] = updated
+    saveTeachers(teachers)
+    localStorage.setItem('loggedInTeacher', JSON.stringify({ empId: updated.empId, name: updated.fullName, role: updated.role }))
+
+    if(successEl) successEl.textContent = 'Saved. Redirecting to dashboard...'
+    setTimeout(()=> location.href = './dashboard.html', 700)
+  })
+});
+</script>
+</body>
+</html>

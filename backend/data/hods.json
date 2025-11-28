@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "name": "Prof. Meera Iyer",
+    "email": "meera.iyer@college.edu",
+    "department": "Computer Science",
+    "phone": "9988776655",
+    "profilePic": "/uploads/profile_meera.jpg",
+    "createdAt": "2025-07-01T07:45:00.000Z",
+    "updatedAt": "2025-11-10T11:20:00.000Z"
+  },
+  {
+    "id": 2,
+    "name": "Dr. Satish Rao",
+    "email": "satish.rao@college.edu",
+    "department": "Electronics",
+    "phone": "9977112233",
+    "profilePic": "/uploads/profile_satish.jpg",
+    "createdAt": "2025-06-10T09:00:00.000Z",
+    "updatedAt": "2025-10-05T10:00:00.000Z"
+  },
+  {
+    "id": 3,
+    "name": "Prof. Latha Menon",
+    "email": "latha.menon@college.edu",
+    "department": "Mechanical",
+    "phone": "9966554433",
+    "profilePic": "/uploads/profile_latha.jpg",
+    "createdAt": "2025-05-20T08:30:00.000Z",
+    "updatedAt": "2025-09-22T14:10:00.000Z"
+  }
+]

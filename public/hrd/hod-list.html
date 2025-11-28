@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HRD — HOD Management</title>
+
+  <script src="/assets/js/auth-client.js"></script>
+
+  <style>
+    :root {
+      --bg: #0f1724;
+      --card: #0b1220;
+      --muted: #9aa4b2;
+      --accent: #06b6d4
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: Inter, system-ui, Segoe UI, Roboto, Arial
+    }
+
+    body {
+      margin: 0;
+      background: linear-gradient(180deg, #071022 0%, var(--bg) 100%);
+      color: #e6eef6
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      min-height: 100vh
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, #031426 0%, #071428 100%);
+      padding: 20px;
+      border-right: 1px solid rgba(255, 255, 255, 0.03)
+    }
+
+    .brand {
+      font-weight: 700;
+      font-size: 18px;
+      margin-bottom: 18px
+    }
+
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 8px
+    }
+
+    .nav a {
+      color: var(--muted);
+      text-decoration: none;
+      padding: 10px;
+      border-radius: 8px
+    }
+
+    .nav a.active {
+      background: rgba(255, 255, 255, 0.03);
+      color: #fff
+    }
+
+    .main {
+      padding: 24px
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px
+    }
+
+    .search {
+      background: var(--card);
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.02)
+    }
+
+    .card {
+      background: var(--card);
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.02)
+    }
+
+    .table {
+      margin-top: 18px
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse
+    }
+
+    th,
+    td {
+      padding: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 14px
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 600;
+      text-align: left
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px
+    }
+
+    .ghost {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      padding: 8px 10px;
+      border-radius: 8px;
+      color: var(--muted);
+      cursor: pointer
+    }
+
+    .btn {
+      background: linear-gradient(90deg, var(--accent), #3b82f6);
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: none;
+      color: #021;
+      cursor: pointer
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 500
+    }
+
+    .modal {
+      background: var(--card);
+      padding: 20px;
+      border-radius: 12px;
+      width: 400px;
+      max-width: 90%
+    }
+
+    .pill {
+      padding: 6px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 13px;
+      margin-right: 6px
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    .empty {
+      padding: 28px;
+      text-align: center;
+      color: var(--muted)
+    }
+
+    @media (max-width:900px) {
+      .layout {
+        grid-template-columns: 1fr
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">HRD Admin</div>
+      <nav class="nav">
+        <a href="/hrd/schedule-admin.html">Dashboard</a>
+        <a class="active" href="/hrd/hod-list.html">HODs</a>
+        <a href="/hrd/teacher-list.html">Teachers</a>
+        <a href="/login.html">Logout</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+
+      <div class="topbar">
+        <div class="search">Search HOD...</div>
+        <div style="color:var(--muted);font-size:13px">Logged in as Admin</div>
+      </div>
+
+      <div class="card table" id="cardTable">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <h3 style="margin:0;font-size:16px">HOD List</h3>
+          <input id="filter" placeholder="Filter by dept or name"
+            style="padding:8px 10px;background:transparent;border:1px solid rgba(255,255,255,0.05);border-radius:8px;color:#fff">
+        </div>
+
+        <table style="margin-top:14px" id="hodTable">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Department</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="hodBody"></tbody>
+        </table>
+
+        <div id="emptyState" class="empty" style="display:none">No HODs found. If this is unexpected, check your backend
+          or login status.</div>
+      </div>
+
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal" id="modalContent"></div>
+  </div>
+
+  <script>
+    const modalBackdrop = document.getElementById('modalBackdrop')
+    const modalContent = document.getElementById('modalContent')
+    const hodBody = document.getElementById('hodBody')
+    const filterInput = document.getElementById('filter')
+    const emptyState = document.getElementById('emptyState')
+    const hodTable = document.getElementById('hodTable')
+
+    // API Helper
+    async function api(path, opts = {}) {
+      const token = localStorage.getItem('hrd_token')
+      if (!token) {
+        window.location.href = '/login.html'
+        return
+      }
+      const headers = opts.headers || {}
+      headers['Authorization'] = 'Bearer ' + token
+      opts.headers = headers
+      const res = await fetch(path, opts)
+      if (res.status === 401 || res.status === 403) {
+        localStorage.removeItem('hrd_token')
+        window.location.href = '/login.html'
+        return
+      }
+      const txt = await res.text()
+      try { return JSON.parse(txt) } catch (e) { return txt }
+    }
+
+    let hods = []
+
+    function render(list) {
+      hodBody.innerHTML = ''
+      if (!Array.isArray(list) || list.length === 0) {
+        hodTable.style.display = 'none'
+        emptyState.style.display = 'block'
+        return
+      }
+      hodTable.style.display = ''
+      emptyState.style.display = 'none'
+      list.forEach(h => {
+        const tr = document.createElement('tr')
+        tr.innerHTML = `
+      <td>${h.name}</td>
+      <td>${h.dept}</td>
+      <td class="actions">
+        <button class="ghost view" data-id="${h.id}">View</button>
+      </td>`
+        hodBody.appendChild(tr)
+      })
+    }
+
+    function openModal(html) {
+      modalContent.innerHTML = html
+      modalBackdrop.style.display = 'flex'
+    }
+
+    function closeModal() {
+      modalBackdrop.style.display = 'none'
+      modalContent.innerHTML = ''
+    }
+
+    async function loadHods() {
+      try {
+        const data = await api('/api/hods')
+        if (!Array.isArray(data)) {
+          throw new Error('invalid response')
+        }
+        hods = data
+      } catch (e) {
+        hods = []
+        hodTable.style.display = 'none'
+        emptyState.style.display = 'block'
+        emptyState.textContent = 'Could not load HODs from server. Make sure you are logged in and the backend is running.'
+        return
+      }
+      render(hods)
+    }
+
+    document.addEventListener('click', async (e) => {
+      if (e.target.id === 'modalBackdrop') closeModal()
+
+      const v = e.target.closest('.view')
+      if (v) {
+        const id = Number(v.dataset.id)
+        let h
+        try {
+          h = await api(`/api/hods/${id}`)
+          if (!h) throw new Error('no hod')
+        } catch (err) {
+          h = hods.find(x => x.id === id)
+          if (!h) { alert('Could not load HOD'); return }
+        }
+        openModal(`
+      <h3>${h.name}</h3>
+      <p style="color:var(--muted);margin-top:6px">Department</p>
+      <p>${h.dept}</p>
+      <p style="color:var(--muted);margin-top:6px">Experience</p>
+      <p>${h.exp || '—'} years</p>
+      <p style="color:var(--muted);margin-top:6px">Courses</p>
+      <p>${(h.courses || []).map(c => `<span class="pill">${c}</span>`).join(' ')}</p>
+      <div style="margin-top:14px;text-align:right">
+        <button class="ghost" id="closeModal">Close</button>
+      </div>
+    `)
+      }
+
+      if (e.target.id === 'closeModal') closeModal()
+    })
+
+    filterInput.addEventListener('input', () => {
+      const q = filterInput.value.toLowerCase()
+      const filtered = hods.filter(h => (h.name || '').toLowerCase().includes(q) || (h.dept || '').toLowerCase().includes(q))
+      render(filtered)
+    })
+
+    modalBackdrop.addEventListener('click', (e) => {
+      if (e.target.id === 'modalBackdrop') closeModal()
+    })
+
+    // load live HODs from backend
+    loadHods()
+  </script>
+
+</body>
+
+</html>

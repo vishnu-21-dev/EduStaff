@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Syllabus Tracker — SNPSU HRD</title>
+<style>
+:root{--bg:#f6fbff;--card:#fff;--accent:#0b63d6;--muted:#6b7280;--glass:rgba(11,99,214,0.06)}
+*{box-sizing:border-box;font-family:Inter,system-ui,Arial}
+body{margin:0;background:var(--bg);padding:20px;display:flex;justify-content:center;min-height:100vh}
+.wrap{width:100%;max-width:950px}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.h1{font-weight:800;color:var(--accent);font-size:20px}
+.sub{color:var(--muted);font-size:13px}
+.card{background:var(--card);padding:18px;border-radius:12px;box-shadow:0 8px 30px var(--glass);margin-bottom:14px}
+.input,select,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid #e6eefb;background:#fff;font-size:14px}
+textarea{resize:vertical;min-height:90px}
+.fileList{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.fileItem{padding:8px;background:#fbfdff;border-radius:8px;border:1px solid #e5edff;display:flex;justify-content:space-between;align-items:center}
+.small{font-size:13px;color:var(--muted)}
+.error{color:#ef4444;margin-top:6px}
+.success{color:#059669;margin-top:6px}
+.topicCard{padding:10px;border-bottom:1px solid #eef6ff}
+.row{display:flex;gap:10px}
+.btn{padding:10px 12px;border-radius:8px;border:0;background:var(--accent);color:#fff;font-weight:700;cursor:pointer}
+.ghost{background:#fff;border:1px solid #e6eefb;color:var(--accent)}
+.empty{color:var(--muted);padding:18px;text-align:center}
+.preview{max-width:100%;border-radius:8px;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div>
+      <div class="h1">Syllabus Tracker</div>
+      <div class="sub">Update right after class. HOD will see this.</div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn ghost" id="backBtn">Back</button>
+      <button class="btn" id="logoutBtn">Logout</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="font-weight:700;margin-bottom:10px">Submit update</div>
+    <form id="syllForm" autocomplete="off">
+      <div style="margin-top:10px">
+        <input id="course" class="input" placeholder="Course (eg: DBMS, OOPS)" required />
+      </div>
+
+      <div style="margin-top:10px">
+        <select id="unit" class="input">
+          <option>Unit 1</option><option>Unit 2</option><option>Unit 3</option><option>Unit 4</option><option>Unit 5</option>
+        </select>
+      </div>
+
+      <div style="margin-top:10px">
+        <textarea id="topics" class="" placeholder="Topics covered (brief) — required" required></textarea>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <input id="percent" type="number" class="input" placeholder="% completed (approx)" min="0" max="100" />
+        <input id="date" type="date" class="input" />
+      </div>
+
+      <div style="margin-top:10px">
+        <label class="small">Upload proof (optional, max 5MB each)</label>
+        <input id="proofFiles" type="file" multiple />
+        <div id="proofList" class="fileList"></div>
+        <div id="fileErr" class="error"></div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn" id="submitBtn" type="submit">Submit</button>
+        <button type="button" class="btn ghost" id="clearBtn">Clear</button>
+      </div>
+
+      <div id="err" class="error"></div>
+      <div id="msg" class="success"></div>
+    </form>
+  </div>
+
+  <div class="card">
+    <div style="font-weight:700;margin-bottom:10px">Your recent updates</div>
+    <div id="recent"></div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  function safeParse(k, fallback){ try{ const v = JSON.parse(localStorage.getItem(k)||'null'); return v===null?fallback:v }catch(e){ return fallback } }
+  function save(k,v){ localStorage.setItem(k, JSON.stringify(v)) }
+  function uid(){ return 'sy' + Date.now() + Math.floor(Math.random()*9999) }
+  const MAX_SIZE = 5 * 1024 * 1024
+
+  const logged = safeParse('loggedInTeacher', null)
+  if(!logged){ location.href = './login.html'; return }
+  const EMP = logged.empId
+
+  const proofFiles = document.getElementById('proofFiles')
+  const proofList = document.getElementById('proofList')
+  const fileErr = document.getElementById('fileErr')
+  const err = document.getElementById('err')
+  const msg = document.getElementById('msg')
+  const recent = document.getElementById('recent')
+
+  let tempFiles = []
+
+  function renderTemp(){
+    proofList.innerHTML = ''
+    tempFiles.forEach((f,i)=>{
+      const d = document.createElement('div')
+      d.className = 'fileItem'
+      d.innerHTML = `<div style="font-weight:700">${f.name}</div><div class="small">${Math.round(f.size/1024)} KB</div>`
+      const rem = document.createElement('button')
+      rem.className = 'ghost'
+      rem.textContent = 'Remove'
+      rem.addEventListener('click', ()=> {
+        tempFiles.splice(i,1)
+        renderTemp()
+      })
+      d.appendChild(rem)
+      proofList.appendChild(d)
+    })
+  }
+
+  proofFiles.addEventListener('change', async () => {
+    fileErr.textContent = ''
+    const files = Array.from(proofFiles.files || [])
+    for(const f of files){
+      if(f.size > MAX_SIZE){ fileErr.textContent = `File ${f.name} exceeds 5MB`; continue }
+      const data = await new Promise((res,rej) => {
+        const r = new FileReader()
+        r.onload = ()=> res(r.result)
+        r.onerror = ()=> rej()
+        r.readAsDataURL(f)
+      })
+      tempFiles.push({ name: f.name, size: f.size, type: f.type, data })
+    }
+    proofFiles.value = ''
+    renderTemp()
+  })
+
+  function loadMy(){ return safeParse('syllabus_' + EMP, []) }
+  function saveMy(arr){ save('syllabus_' + EMP, arr) }
+
+  function rebuildMasterFromAll(){
+    let master = []
+    const keys = Object.keys(localStorage).filter(k => k.startsWith('syllabus_') && k !== 'syllabus_master')
+    keys.forEach(k => {
+      try{
+        const a = JSON.parse(localStorage.getItem(k) || '[]')
+        if(Array.isArray(a)) master = master.concat(a)
+      }catch(e){}
+    })
+    master.sort((a,b)=> ((b.date||'') + ' ' + (b.time||'')).localeCompare((a.date||'') + ' ' + (a.time||'')))
+    save('syllabus_master', master)
+  }
+
+  (function autoAggregateOnLoad(){
+    const m = safeParse('syllabus_master', null)
+    if(!Array.isArray(m) || m.length === 0){
+      rebuildMasterFromAll()
+    }
+  })()
+
+  function renderRecent(){
+    const arr = loadMy()
+    recent.innerHTML = ''
+    if(!arr || arr.length === 0){ recent.innerHTML = '<div class="empty">No updates yet</div>'; return }
+    arr.slice(0,8).forEach(u=>{
+      const div = document.createElement('div')
+      div.className = 'topicCard'
+      div.innerHTML = `<div style="font-weight:700">${u.course} · ${u.unit} <span class="small" style="float:right">${u.date||''}</span></div>
+                       <div class="small" style="margin-top:6px">${u.topics}</div>
+                       <div class="small" style="margin-top:6px">Progress: ${u.percent?u.percent+'%':'—'}</div>`
+      if(u.proofs && u.proofs.length){
+        const list = document.createElement('div')
+        list.style.marginTop = '8px'
+        u.proofs.forEach(p=>{
+          const a = document.createElement('a')
+          a.href = p.data
+          a.download = p.name
+          a.textContent = p.name
+          a.className = 'small'
+          a.style.display = 'block'
+          a.style.color = 'var(--accent)'
+          list.appendChild(a)
+        })
+        div.appendChild(list)
+      }
+      recent.appendChild(div)
+    })
+  }
+
+  document.getElementById('backBtn').addEventListener('click', ()=> location.href = './dashboard.html')
+  document.getElementById('logoutBtn').addEventListener('click', ()=> { localStorage.removeItem('loggedInTeacher'); location.href = './login.html' })
+  document.getElementById('clearBtn').addEventListener('click', ()=> {
+    tempFiles = []
+    document.getElementById('syllForm').reset()
+    proofList.innerHTML = ''
+    fileErr.textContent = ''
+    err.textContent = ''
+    msg.textContent = ''
+  })
+
+  document.getElementById('syllForm').addEventListener('submit', async (e) => {
+    e.preventDefault()
+    err.textContent = ''; msg.textContent = ''
+    const course = (document.getElementById('course').value || '').trim()
+    const unit = (document.getElementById('unit').value || '').trim()
+    const topics = (document.getElementById('topics').value || '').trim()
+    const percent = (document.getElementById('percent').value || '').trim()
+    const dateVal = (document.getElementById('date').value || '').trim() || new Date().toISOString().slice(0,10)
+
+    if(!course || !topics){ err.textContent = 'Course and topics required'; return }
+
+    const proofs = tempFiles.map(f=>({ name: f.name, size: f.size, type: f.type, data: f.data }))
+    const record = {
+      id: uid(),
+      empId: EMP,
+      teacher: logged.name || EMP,
+      course,
+      unit,
+      topics,
+      percent: percent || '',
+      date: dateVal,
+      time: new Date().toLocaleTimeString(),
+      proofs
+    }
+
+    const mine = loadMy()
+    mine.unshift(record)
+    saveMy(mine)
+    rebuildMasterFromAll()
+    tempFiles = []
+    proofList.innerHTML = ''
+    document.getElementById('syllForm').reset()
+    msg.textContent = 'Submitted'
+    renderRecent()
+  })
+
+  renderRecent()
+})
+</script>
+</body>
+</html>

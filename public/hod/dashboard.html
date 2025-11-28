@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>HRD — HOD Dashboard</title>
+    <script src="/assets/js/auth-client.js"></script>
+    <style>
+        :root {
+            --bg: #0f1724;
+            --card: #0b1220;
+            --muted: #9aa4b2;
+            --accent: #06b6d4
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: Inter, system-ui, Segoe UI, Roboto, Arial
+        }
+
+        body {
+            margin: 0;
+            background: linear-gradient(180deg, #071022 0%, var(--bg) 100%);
+            color: #e6eef6
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            min-height: 100vh
+        }
+
+        .sidebar {
+            background: linear-gradient(180deg, #031426 0%, #071428 100%);
+            padding: 20px;
+            border-right: 1px solid rgba(255, 255, 255, 0.03)
+        }
+
+        .brand {
+            font-weight: 700;
+            font-size: 18px;
+            margin-bottom: 18px
+        }
+
+        .nav {
+            display: flex;
+            flex-direction: column;
+            gap: 8px
+        }
+
+        .nav a {
+            color: var(--muted);
+            text-decoration: none;
+            padding: 10px;
+            border-radius: 8px;
+            display: block
+        }
+
+        .nav a.active {
+            background: rgba(255, 255, 255, 0.03);
+            color: #fff
+        }
+
+        .main {
+            padding: 24px
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px
+        }
+
+        .card {
+            background: var(--card);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.02)
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+            margin-bottom: 20px
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse
+        }
+
+        th,
+        td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            font-size: 14px
+        }
+
+        th {
+            color: var(--muted);
+            font-weight: 600
+        }
+
+        .btn {
+            background: linear-gradient(90deg, var(--accent), #3b82f6);
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: none;
+            color: #021;
+            cursor: pointer
+        }
+
+        .ghost {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            padding: 8px 10px;
+            border-radius: 8px;
+            color: var(--muted);
+            cursor: pointer
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 60
+        }
+
+        .modal {
+            background: var(--card);
+            padding: 18px;
+            border-radius: 12px;
+            width: 520px;
+            max-width: 95%
+        }
+
+        label {
+            display: block;
+            margin-top: 8px;
+            font-size: 13px;
+            color: var(--muted)
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            background: transparent;
+            color: inherit
+        }
+
+        .row {
+            display: flex;
+            gap: 8px
+        }
+
+        @media (max-width:900px) {
+            .layout {
+                grid-template-columns: 1fr
+            }
+
+            .grid {
+                grid-template-columns: 1fr
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="brand">HOD Dashboard</div>
+            <nav class="nav">
+                <a class="active" href="#">Dashboard</a>
+                <a href="/login.html">Logout</a>
+            </nav>
+        </aside>
+        <main class="main">
+            <div class="topbar">
+                <div style="font-size:13px;color:var(--muted)">Logged in as HOD</div>
+                <button class="btn" id="newSchedule">Add Schedule</button>
+            </div>
+
+            <div class="grid">
+                <div class="card">
+                    <h3>Department Syllabus Tracker</h3>
+                    <div style="overflow:auto;max-height:400px;margin-top:12px">
+                        <table class="table" id="syllabusTable">
+                            <thead>
+                                <tr>
+                                    <th>Teacher</th>
+                                    <th>Dept</th>
+                                    <th>Progress</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Schedule Manager</h3>
+                    <div style="overflow:auto;max-height:400px;margin-top:12px">
+                        <div id="scheduleList"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal-backdrop" id="modalBackdrop">
+        <div class="modal" id="modalContent"></div>
+    </div>
+
+    <script>
+        // API Helper
+        async function api(path, opts = {}) {
+            const token = localStorage.getItem('hrd_token')
+            if (!token) { window.location.href = '/login.html'; return }
+            const headers = opts.headers || {}
+            headers['Authorization'] = 'Bearer ' + token
+            opts.headers = headers
+            const res = await fetch(path, opts)
+            if (res.status === 401 || res.status === 403) { localStorage.removeItem('hrd_token'); window.location.href = '/login.html'; return }
+            const txt = await res.text()
+            try { return JSON.parse(txt) } catch (e) { return txt }
+        }
+
+        let teachers = []
+        let schedules = []
+        const modalBackdrop = document.getElementById('modalBackdrop')
+        const modalContent = document.getElementById('modalContent')
+
+        function openModal(html) { modalContent.innerHTML = html; modalBackdrop.style.display = 'flex' }
+        function closeModal() { modalBackdrop.style.display = 'none'; modalContent.innerHTML = '' }
+
+        async function init() {
+            try {
+                teachers = await api('/api/teachers')
+                schedules = await api('/api/schedules')
+                if (!Array.isArray(teachers)) teachers = []
+                if (!Array.isArray(schedules)) schedules = []
+                render()
+            } catch (e) { console.error(e) }
+        }
+
+        function render() {
+            // Render Syllabus
+            const tbody = document.querySelector('#syllabusTable tbody')
+            tbody.innerHTML = teachers.map(t => `<tr><td>${t.name}</td><td>${t.dept}</td><td>${t.pct}%</td></tr>`).join('')
+
+            // Render Schedules
+            const schedList = document.getElementById('scheduleList')
+            if (schedules.length === 0) schedList.innerHTML = '<div style="color:var(--muted)">No schedules found</div>'
+            else {
+                schedList.innerHTML = schedules.map(s => {
+                    const t = teachers.find(x => x.id === s.teacherId) || { name: 'Unknown' }
+                    return `<div style="padding:10px;border-bottom:1px solid rgba(255,255,255,0.03);display:flex;justify-content:space-between;align-items:center">
+            <div><div style="font-weight:700">${s.course}</div><div style="font-size:13px;color:var(--muted)">${t.name} · ${s.date} · ${s.time}</div></div>
+            <button class="ghost delSched" data-id="${s.id}">Del</button>
+          </div>`
+                }).join('')
+            }
+        }
+
+        document.getElementById('newSchedule').addEventListener('click', () => {
+            const opts = teachers.map(t => `<option value="${t.id}">${t.name} (${t.dept})</option>`).join('')
+            openModal(`<div><h3>New Schedule</h3><label>Teacher</label><select id="sTeacher">${opts}</select><label>Course</label><input id="sCourse"><div class="row"><div style="flex:1"><label>Date</label><input type="date" id="sDate"></div><div style="flex:1"><label>Time</label><input id="sTime" placeholder="09:00"></div></div><label>Room</label><input id="sRoom"><div style="margin-top:12px;text-align:right"><button class="ghost" id="closeM">Cancel</button> <button class="btn" id="saveS">Save</button></div></div>`)
+        })
+
+        modalContent.addEventListener('click', async e => {
+            if (e.target.id === 'saveS') {
+                const payload = {
+                    teacherId: document.getElementById('sTeacher').value,
+                    course: document.getElementById('sCourse').value,
+                    date: document.getElementById('sDate').value,
+                    time: document.getElementById('sTime').value,
+                    room: document.getElementById('sRoom').value
+                }
+                await api('/api/schedules', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+                closeModal()
+                init()
+            }
+            if (e.target.id === 'closeM') closeModal()
+        })
+
+        document.addEventListener('click', async e => {
+            if (e.target.classList.contains('delSched')) {
+                if (!confirm('Delete schedule?')) return
+                await api(`/api/schedules/${e.target.dataset.id}`, { method: 'DELETE' })
+                init()
+            }
+            if (e.target.id === 'modalBackdrop') closeModal()
+        })
+
+        init()
+    </script>
+</body>
+
+</html>

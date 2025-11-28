@@ -1,0 +1,111 @@
+[
+  {
+    "id": 1,
+    "username": "admin",
+    "name": "College Admin",
+    "email": "admin@college.edu",
+    "role": "admin",
+    "password": "adminpassword123",
+    "createdAt": "2025-01-01T00:00:00.000Z",
+    "updatedAt": "2025-01-01T00:00:00.000Z"
+  },
+  {
+    "id": 2,
+    "username": "arjun.kumar",
+    "name": "Dr. Arjun Kumar",
+    "email": "arjun.kumar@college.edu",
+    "role": "teacher",
+    "password": "teacherpass1",
+    "refId": 1,
+    "createdAt": "2025-08-01T08:05:00.000Z",
+    "updatedAt": "2025-08-01T08:05:00.000Z"
+  },
+  {
+    "id": 3,
+    "username": "nidhi.sharma",
+    "name": "Ms. Nidhi Sharma",
+    "email": "nidhi.sharma@college.edu",
+    "role": "teacher",
+    "password": "teacherpass2",
+    "refId": 2,
+    "createdAt": "2025-09-12T10:05:00.000Z",
+    "updatedAt": "2025-09-12T10:05:00.000Z"
+  },
+  {
+    "id": 4,
+    "username": "rohit.verma",
+    "name": "Mr. Rohit Verma",
+    "email": "rohit.verma@college.edu",
+    "role": "teacher",
+    "password": "teacherpass3",
+    "refId": 3,
+    "createdAt": "2025-06-15T09:05:00.000Z",
+    "updatedAt": "2025-06-15T09:05:00.000Z"
+  },
+  {
+    "id": 5,
+    "username": "priya.nair",
+    "name": "Dr. Priya Nair",
+    "email": "priya.nair@college.edu",
+    "role": "teacher",
+    "password": "teacherpass4",
+    "refId": 4,
+    "createdAt": "2025-05-20T07:35:00.000Z",
+    "updatedAt": "2025-05-20T07:35:00.000Z"
+  },
+  {
+    "id": 6,
+    "username": "kavya.menon",
+    "name": "Ms. Kavya Menon",
+    "email": "kavya.menon@college.edu",
+    "role": "teacher",
+    "password": "teacherpass5",
+    "refId": 5,
+    "createdAt": "2025-09-01T12:05:00.000Z",
+    "updatedAt": "2025-09-01T12:05:00.000Z"
+  },
+  {
+    "id": 7,
+    "username": "sanjay.patel",
+    "name": "Mr. Sanjay Patel",
+    "email": "sanjay.patel@college.edu",
+    "role": "teacher",
+    "password": "teacherpass6",
+    "refId": 6,
+    "createdAt": "2025-04-18T10:20:00.000Z",
+    "updatedAt": "2025-04-18T10:20:00.000Z"
+  },
+  {
+    "id": 8,
+    "username": "meera.iyer",
+    "name": "Prof. Meera Iyer",
+    "email": "meera.iyer@college.edu",
+    "role": "hod",
+    "password": "hodpass1",
+    "refId": 1,
+    "createdAt": "2025-07-01T07:50:00.000Z",
+    "updatedAt": "2025-07-01T07:50:00.000Z"
+  },
+  {
+    "id": 9,
+    "username": "satish.rao",
+    "name": "Dr. Satish Rao",
+    "email": "satish.rao@college.edu",
+    "role": "hod",
+    "password": "hodpass2",
+    "refId": 2,
+    "createdAt": "2025-06-10T09:05:00.000Z",
+    "updatedAt": "2025-06-10T09:05:00.000Z"
+  },
+  {
+    "id": 10,
+    "username": "latha.menon",
+    "name": "Prof. Latha Menon",
+    "email": "latha.menon@college.edu",
+    "role": "hod",
+    "password": "hodpass3",
+    "refId": 3,
+    "createdAt": "2025-05-20T08:35:00.000Z",
+    "updatedAt": "2025-05-20T08:35:00.000Z"
+  }
+]

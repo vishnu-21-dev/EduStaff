@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Teacher Dashboard — SNPSU HRD</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #fff;
+      --accent: #0b63d6;
+      --muted: #6b7280;
+      --glass: rgba(11, 99, 214, 0.06);
+      --ok: #10b981
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: Inter, system-ui, Segoe UI, Roboto, Arial
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      background: linear-gradient(180deg, #f0f8ff 0%, var(--bg) 100%)
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      height: 100vh;
+      gap: 20px;
+      padding: 20px
+    }
+
+    .sidebar {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 8px 30px var(--glass);
+      display: flex;
+      flex-direction: column;
+      gap: 12px
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      color: var(--accent);
+      font-size: 18px
+    }
+
+    .nav {
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px
+    }
+
+    .nav a {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      padding: 10px;
+      border-radius: 8px;
+      color: #234;
+      text-decoration: none;
+      font-weight: 600
+    }
+
+    .nav a.active,
+    .nav a:hover {
+      background: #eef6ff;
+      color: var(--accent)
+    }
+
+    .quick {
+      margin-top: auto;
+      font-size: 13px;
+      color: var(--muted)
+    }
+
+    .main {
+      display: flex;
+      flex-direction: column;
+      gap: 18px
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: var(--card);
+      border-radius: 12px;
+      box-shadow: 0 8px 30px var(--glass)
+    }
+
+    .header-left {
+      display: flex;
+      gap: 18px;
+      align-items: center
+    }
+
+    .avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 10px;
+      background: #eef6ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: var(--accent);
+      font-size: 18px
+    }
+
+    .hi {
+      font-weight: 700;
+      font-size: 18px
+    }
+
+    .sub {
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    .header-right {
+      display: flex;
+      gap: 10px;
+      align-items: center
+    }
+
+    .cardgrid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      padding: 6px
+    }
+
+    .card {
+      background: var(--card);
+      padding: 14px;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px var(--glass);
+      display: flex;
+      flex-direction: column;
+      gap: 8px
+    }
+
+    .card .num {
+      font-weight: 800;
+      font-size: 20px;
+      color: var(--accent)
+    }
+
+    .section {
+      background: var(--card);
+      padding: 14px;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px var(--glass)
+    }
+
+    .row {
+      display: flex;
+      gap: 14px
+    }
+
+    .leftCol {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 14px
+    }
+
+    .rightCol {
+      width: 380px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse
+    }
+
+    .table th {
+      background: #f8fbff;
+      text-align: left;
+      padding: 10px;
+      border-bottom: 1px solid #eef6ff;
+      color: var(--muted);
+      font-weight: 700
+    }
+
+    .table td {
+      padding: 10px;
+      border-bottom: 1px solid #f1f5f9
+    }
+
+    .linkbtn {
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: #fff;
+      border: 1px solid #e6eefb;
+      color: var(--accent);
+      cursor: pointer
+    }
+
+    .kv {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #f1f5f9;
+      color: var(--muted)
+    }
+
+    .empty {
+      color: var(--muted);
+      padding: 18px;
+      text-align: center
+    }
+
+    .syllabusCard {
+      padding: 10px;
+      border-radius: 10px;
+      background: #fff;
+      border: 1px solid #eef6ff
+    }
+
+    .syllTitle {
+      font-weight: 700
+    }
+
+    .small {
+      font-size: 13px;
+      color: var(--muted)
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100
+    }
+
+    .modal {
+      background: var(--card);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px var(--glass);
+      width: 500px;
+      max-width: 90%
+    }
+
+    .activityCard {
+      padding: 10px;
+      border-radius: 8px;
+      background: #f8fbff;
+      border: 1px solid #eef6ff;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center
+    }
+
+    @media(max-width:980px) {
+      .app {
+        grid-template-columns: 1fr;
+        padding: 12px
+      }
+
+      .cardgrid {
+        grid-template-columns: repeat(2, 1fr)
+      }
+
+      .rightCol {
+        width: 100%
+      }
+
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">SNPSU · HRD</div>
+      <nav class="nav" id="navLinks">
+        <a href="./dashboard.html" class="active"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+        <a href="./todo.html"><i class="fa-solid fa-list-check"></i> My To-Do</a>
+        <a href="./schedule.html"><i class="fa-solid fa-calendar-days"></i> Department Schedule</a>
+        <a href="./classwork.html"><i class="fa-solid fa-folder-open"></i> Classwork</a>
+        <a href="./attendance.html"><i class="fa-solid fa-user-check"></i> Attendance</a>
+        <a href="./syllabus.html"><i class="fa-solid fa-book"></i> Syllabus Tracker</a>
+        <a href="./upload-classwork.html"><i class="fa-solid fa-upload"></i> Upload Materials</a>
+        <a href="./edit-profile.html"><i class="fa-solid fa-user-pen"></i> Edit Profile</a>
+      </nav>
+      <div class="quick">
+        <div style="margin-top:6px">You: <strong id="sidName">—</strong></div>
+        <div style="margin-top:4px">Dept: <span id="sidDept">—</span></div>
+        <div style="margin-top:10px">
+          <button class="linkbtn" id="logoutBtn">Logout</button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="header">
+        <div class="header-left">
+          <div class="avatar" id="avatarEl">T</div>
+          <div>
+            <div class="hi" id="greet">Welcome</div>
+            <div class="sub" id="subText">Teacher dashboard</div>
+          </div>
+        </div>
+        <div class="header-right">
+          <div style="text-align:right">
+            <div style="font-weight:700" id="dateNow"></div>
+            <div class="sub">Local time</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cardgrid" id="kpiArea">
+        <div class="card">
+          <div class="small">Your tasks</div>
+          <div class="num" id="k_todos">0</div>
+          <div class="small">pending / done</div>
+        </div>
+        <div class="card">
+          <div class="small">Classwork posted (dept)</div>
+          <div class="num" id="k_classwork">0</div>
+          <div class="small">available for students</div>
+        </div>
+        <div class="card">
+          <div class="small">Schedule items (week)</div>
+          <div class="num" id="k_schedule">0</div>
+          <div class="small">this week</div>
+        </div>
+        <div class="card">
+          <div class="small">Attendance (today)</div>
+          <div class="num" id="k_att">—</div>
+          <div class="small">marked / not</div>
+        </div>
+      </div>
+
+      <div class="row" style="padding:0 2px">
+        <div class="leftCol">
+          <div class="section">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <div style="font-weight:700">Recent activity</div>
+              <div class="small"><button class="linkbtn" id="refreshBtn">Refresh</button></div>
+            </div>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th style="width:140px">Type</th>
+                  <th style="width:120px">Date</th>
+                </tr>
+              </thead>
+              <tbody id="activityBody"></tbody>
+            </table>
+          </div>
+
+          <div class="section">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <div style="font-weight:700">Recent Classwork (dept)</div>
+              <div class="small">Latest uploads</div>
+            </div>
+            <div id="classworkRecent" class="small"></div>
+          </div>
+
+          <div class="section">
+            <div style="font-weight:700;margin-bottom:8px">Quick actions</div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <button class="linkbtn" onclick="location.href='./todo.html'">Open To-Do</button>
+              <button class="linkbtn" onclick="location.href='./classwork.html'">View Classwork</button>
+              <button class="linkbtn" onclick="location.href='./upload-classwork.html'">Upload Material</button>
+              <button class="linkbtn" onclick="location.href='./schedule.html'">View Schedule</button>
+              <button class="linkbtn" onclick="location.href='./syllabus.html'">Syllabus Tracker</button>
+            </div>
+          </div>
+
+          <div class="section">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <div style="font-weight:700">Extracurricular Activities</div>
+              <button class="linkbtn" id="addActivityBtn">Add Activity</button>
+            </div>
+            <div id="extracurricularList" class="small"></div>
+          </div>
+        </div>
+
+        <div class="rightCol">
+          <div class="section">
+            <div style="font-weight:700;margin-bottom:8px">Profile</div>
+            <div class="kv">
+              <div>Name</div>
+              <div id="p_name">—</div>
+            </div>
+            <div class="kv">
+              <div>Employee ID</div>
+              <div id="p_emp">—</div>
+            </div>
+            <div class="kv">
+              <div>Department</div>
+              <div id="p_dept">—</div>
+            </div>
+            <div class="kv">
+              <div>Email</div>
+              <div id="p_email">—</div>
+            </div>
+            <div style="margin-top:12px;display:flex;gap:8px">
+              <button class="linkbtn" onclick="location.href='./edit-profile.html'">Edit</button>
+              <button class="linkbtn" id="viewAllBtn">All teachers</button>
+            </div>
+          </div>
+
+          <div class="section" id="upcomingBox">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+              <div style="font-weight:700">Upcoming</div>
+              <div class="small">next items</div>
+            </div>
+            <div id="upcomingList"></div>
+          </div>
+
+          <div class="section">
+            <div style="font-weight:700;margin-bottom:8px">Syllabus Updates</div>
+            <div id="syllabusPanel" class="small"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal" id="modalContent"></div>
+  </div>
+
+  <script>
+    (async function () {
+      function safeParse(k, fallback) { try { const v = JSON.parse(localStorage.getItem(k) || 'null'); return v === null ? fallback : v } catch (e) { return fallback } }
+      function loadTeachers() { return safeParse('teachers', []) }
+      function loadTodos(empId) { return safeParse('todos_' + empId, []) }
+      function loadClasswork() { return safeParse('dept_classwork', []) }
+
+      // NEW: Fetch schedule from backend
+      async function loadSchedule() {
+        try {
+          const res = await fetch('/api/schedules')
+          if (!res.ok) throw new Error('failed')
+          return await res.json()
+        } catch (e) {
+          console.warn('Using local schedule fallback')
+          return safeParse('dept_schedule', [])
+        }
+      }
+
+      function loadAttendance() { return safeParse('attendance', []) }
+      function loadSyllabusMaster() { return safeParse('syllabus_master', []) }
+      function getLogged() { return safeParse('loggedInTeacher', null) }
+
+      const user = getLogged()
+      if (!user) { location.href = './login.html'; return }
+      const teachers = loadTeachers()
+      const me = teachers.find(t => t.empId && t.empId.toLowerCase() === user.empId.toLowerCase()) || { fullName: user.name || user.empId, empId: user.empId, dept: user.dept || '', id: user.id } // Ensure we have ID if possible
+
+      // If me.id is missing, try to find it from backend list later or rely on empId matching if backend supported it. 
+      // For now, we'll fetch all schedules and filter by teacherId matching our ID.
+      // We need to know our own ID to filter schedules correctly.
+
+      let myId = me.id
+      if (!myId) {
+        // Try to find my ID from the full teacher list if not in local storage
+        try {
+          const res = await fetch('/api/teachers')
+          const all = await res.json()
+          const found = all.find(t => t.empId === me.empId)
+          if (found) myId = found.id
+        } catch (e) { }
+      }
+
+      function setProfile() {
+        document.getElementById('avatarEl').textContent = (me.fullName || 'T').split(' ').map(s => s[0]).slice(0, 2).join('').toUpperCase()
+        document.getElementById('greet').textContent = me.fullName || user.name || user.empId
+        document.getElementById('subText').textContent = me.dept ? me.dept + ' · Teacher' : 'Teacher'
+        document.getElementById('sidName').textContent = me.fullName || user.name || user.empId
+        document.getElementById('sidDept').textContent = me.dept || '—'
+        document.getElementById('p_name').textContent = me.fullName || '—'
+        document.getElementById('p_emp').textContent = me.empId || '—'
+        document.getElementById('p_dept').textContent = me.dept || '—'
+        document.getElementById('p_email').textContent = me.email || '—'
+      }
+
+      function updateTime() { const d = new Date(); document.getElementById('dateNow').textContent = d.toLocaleString(); }
+      updateTime(); setInterval(updateTime, 60000)
+
+      async function renderKPIs() {
+        const todos = loadTodos(me.empId)
+        const done = todos.filter(t => t.done).length
+        document.getElementById('k_todos').textContent = `${todos.length ? todos.length - done : 0} / ${done}`
+        const cw = loadClasswork()
+        document.getElementById('k_classwork').textContent = cw.length || 0
+
+        const sched = await loadSchedule()
+        // Filter for ME
+        const mySched = sched.filter(s => s.teacherId === myId)
+
+        const now = new Date(), start = new Date(now); start.setHours(0, 0, 0, 0); const end = new Date(start); end.setDate(start.getDate() + 7)
+        const thisWeek = mySched.filter(s => {
+          if (!s.date) return false
+          const d = new Date(s.date)
+          return d >= start && d <= end
+        })
+        document.getElementById('k_schedule').textContent = thisWeek.length || 0
+        const att = loadAttendance().find(a => a.empId === me.empId && a.date === (new Date().toISOString().slice(0, 10)))
+        document.getElementById('k_att').textContent = att ? 'Yes' : 'No'
+        return mySched
+      }
+
+      async function renderActivity(mySched) {
+        const rows = []
+        const todos = loadTodos(me.empId).slice(-6).reverse()
+        todos.forEach(t => rows.push({ label: t.title, type: 'Todo', date: t.createdAt ? t.createdAt.split('T')[0] : '' }))
+        const cw = loadClasswork().slice(0, 6)
+        cw.forEach(c => rows.push({ label: c.title, type: 'Classwork', date: c.posted ? c.posted.split('T')[0] : '' }))
+
+          // Use passed schedule
+          (mySched || []).slice(0, 6).forEach(s => rows.push({ label: s.course, type: 'Schedule', date: s.date || '' }))
+
+        const master = loadSyllabusMaster().slice(0, 6)
+        master.forEach(s => rows.push({ label: (s.course || 'Syllabus') + ' — ' + (s.unit || ''), type: 'Syllabus', date: s.date || '' }))
+        rows.sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+        const body = document.getElementById('activityBody'); body.innerHTML = ''
+        if (rows.length === 0) { body.innerHTML = '<tr><td colspan="3" class="empty">No recent activity</td></tr>'; return }
+        rows.slice(0, 8).forEach(r => {
+          const tr = document.createElement('tr')
+          tr.innerHTML = `<td>${r.label}</td><td>${r.type}</td><td>${r.date}</td>`
+          body.appendChild(tr)
+        })
+      }
+
+      function renderClassworkRecent() {
+        const shared = loadClasswork() || []
+        const el = document.getElementById('classworkRecent')
+        if (!shared || shared.length === 0) { el.innerHTML = '<div class="empty">No classwork posted</div>'; return }
+        const html = shared.slice(0, 6).map(it => {
+          const dd = it.deadline ? ` · deadline: ${it.deadline}` : ''
+          return `<div style="padding:8px;border-bottom:1px solid #eef6ff"><div style="font-weight:700">${it.title}</div><div class="small">${it.category} · ${it.dept || 'All'}${dd}</div></div>`
+        }).join('')
+        el.innerHTML = html
+      }
+
+      function renderUpcoming(mySched) {
+        const today = new Date().toISOString().slice(0, 10)
+        const upcoming = (mySched || []).filter(s => s.date && s.date >= today).sort((a, b) => (a.date || '').localeCompare(b.date || '')).slice(0, 6)
+        const upWrap = document.getElementById('upcomingList'); upWrap.innerHTML = ''
+        if (!upcoming || upcoming.length === 0) { upWrap.innerHTML = '<div class="empty">No upcoming items</div>'; return }
+        upcoming.forEach(it => {
+          const div = document.createElement('div')
+          div.className = 'syllabusCard'
+          div.innerHTML = `<div style="font-weight:700">${it.course}</div><div class="small">${it.date} · ${it.time || '—'} · ${it.room || '—'}</div>`
+          upWrap.appendChild(div)
+        })
+      }
+
+      function renderSyllabusPanel() {
+        const master = loadSyllabusMaster() || []
+        const panel = document.getElementById('syllabusPanel'); panel.innerHTML = ''
+        if (!master || master.length === 0) { panel.innerHTML = '<div class="empty">No syllabus updates yet</div>'; return }
+        const list = master.slice(0, 8)
+        list.forEach(it => {
+          const el = document.createElement('div')
+          el.className = 'syllabusCard'
+          el.innerHTML = `<div class="syllTitle">${it.course} · ${it.unit} <span class="small" style="float:right">${it.date}</span></div>
+                      <div class="small" style="margin-top:6px">${it.topics.substring(0, 140)}${it.topics.length > 140 ? '...' : ''}</div>
+                      <div style="margin-top:8px" class="small">By: ${it.teacher || it.empId} · ${it.percent ? it.percent + '%' : ''}</div>`
+          panel.appendChild(el)
+        })
+      }
+
+      document.getElementById('logoutBtn').addEventListener('click', () => {
+        localStorage.removeItem('loggedInTeacher')
+        location.href = './login.html'
+      })
+
+      document.getElementById('viewAllBtn').addEventListener('click', () => {
+        const t = loadTeachers()
+        const html = t.map(x => `${x.fullName} · ${x.empId} · ${x.dept || '—'}`).join('\n')
+        alert(html || 'No teachers found')
+      })
+
+      document.getElementById('refreshBtn').addEventListener('click', () => {
+        renderAll()
+      })
+
+      // ========== Extracurricular Activities ==========
+      async function loadExtracurricular() {
+        if (!myId) return []
+        try {
+          const res = await fetch(`/api/teachers/${myId}/extracurricular`)
+          if (!res.ok) throw new Error('failed')
+          const data = await res.json()
+          return data.activities || []
+        } catch (e) {
+          console.warn('Could not load extracurricular')
+          return []
+        }
+      }
+
+      async function renderExtracurricular() {
+        const list = document.getElementById('extracurricularList')
+        const activities = await loadExtracurricular()
+        if (activities.length === 0) {
+          list.innerHTML = '<div class="empty">No extracurricular activities yet</div>'
+          return
+        }
+        list.innerHTML = activities.map((a, idx) => `
+          <div class="activityCard">
+            <div>
+              <div style="font-weight:700">${a.title || a}</div>
+              <div class="small">${a.date || ''} ${a.type ? '· ' + a.type : ''}</div>
+            </div>
+            <div style="display:flex;gap:6px">
+              <button class="linkbtn editActivity" data-index="${idx}">Edit</button>
+              <button class="linkbtn deleteActivity" data-index="${idx}">Delete</button>
+            </div>
+          </div>`).join('')
+      }
+
+      function openModal(html) {
+        document.getElementById('modalContent').innerHTML = html
+        document.getElementById('modalBackdrop').style.display = 'flex'
+      }
+
+      function closeModal() {
+        document.getElementById('modalBackdrop').style.display = 'none'
+        document.getElementById('modalContent').innerHTML = ''
+      }
+
+      function activityFormHtml(existing, index) {
+        return `
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+              <h3 style="margin:0">${existing ? 'Edit Activity' : 'New Activity'}</h3>
+              <button class="linkbtn" id="closeModalBtn">Close</button>
+            </div>
+            <label style="display:block;margin-top:10px;font-size:13px;color:var(--muted)">Activity Title</label>
+            <input id="actTitle" value="${existing ? existing.title : ''}" style="width:100%;padding:8px;border-radius:8px;border:1px solid #e6eefb;margin-top:4px" />
+            <label style="display:block;margin-top:10px;font-size:13px;color:var(--muted)">Type (e.g., Sports, Events, Cultural)</label>
+            <input id="actType" value="${existing ? existing.type || '' : ''}" style="width:100%;padding:8px;border-radius:8px;border:1px solid #e6eefb;margin-top:4px" />
+            <label style="display:block;margin-top:10px;font-size:13px;color:var(--muted)">Date</label>
+            <input id="actDate" type="date" value="${existing ? existing.date : ''}" style="width:100%;padding:8px;border-radius:8px;border:1px solid #e6eefb;margin-top:4px" />
+            <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+              <button class="linkbtn" id="cancelActBtn">Cancel</button>
+              <button class="linkbtn" id="saveActBtn" data-index="${index !== undefined ? index : ''}" style="background:var(--accent);color:#fff">Save</button>
+            </div>
+          </div>`
+      }
+
+      async function saveActivity(index) {
+        const title = document.getElementById('actTitle').value.trim()
+        const type = document.getElementById('actType').value.trim()
+        const date = document.getElementById('actDate').value
+        if (!title) { alert('Activity title is required'); return }
+
+        const activities = await loadExtracurricular()
+        if (index !== null && index !== undefined && index !== '') {
+          activities[Number(index)] = { title, type, date }
+        } else {
+          activities.push({ title, type, date })
+        }
+
+        try {
+          const res = await fetch(`/api/teachers/${myId}/extracurricular`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ activities })
+          })
+          if (!res.ok) throw new Error('Save failed')
+          await renderExtracurricular()
+          closeModal()
+        } catch (e) {
+          alert('Failed to save activity')
+        }
+      }
+
+      async function deleteActivity(index) {
+        if (!confirm('Delete this activity?')) return
+        const activities = await loadExtracurricular()
+        activities.splice(Number(index), 1)
+        try {
+          const res = await fetch(`/api/teachers/${myId}/extracurricular`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ activities })
+          })
+          if (!res.ok) throw new Error('Delete failed')
+          await renderExtracurricular()
+        } catch (e) {
+          alert('Failed to delete activity')
+        }
+      }
+
+      // Event listeners for extracurricular
+      document.getElementById('addActivityBtn').addEventListener('click', () => {
+        openModal(activityFormHtml())
+      })
+
+      document.addEventListener('click', async (e) => {
+        if (e.target.classList.contains('editActivity')) {
+          const idx = Number(e.target.dataset.index)
+          const activities = await loadExtracurricular()
+          openModal(activityFormHtml(activities[idx], idx))
+        }
+        if (e.target.classList.contains('deleteActivity')) {
+          const idx = e.target.dataset.index
+          await deleteActivity(idx)
+        }
+        if (e.target.id === 'saveActBtn') {
+          await saveActivity(e.target.dataset.index)
+        }
+        if (e.target.id === 'closeModalBtn' || e.target.id === 'cancelActBtn') {
+          closeModal()
+        }
+        if (e.target.id === 'modalBackdrop') {
+          closeModal()
+        }
+      })
+
+      async function renderAll() {
+        setProfile()
+        const mySched = await renderKPIs()
+        renderActivity(mySched)
+        renderUpcoming(mySched)
+        renderClassworkRecent()
+        renderSyllabusPanel()
+        renderExtracurricular()
+      }
+
+      renderAll()
+    })();
+  </script>
+</body>
+
+</html>

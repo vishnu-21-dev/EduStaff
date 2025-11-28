@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HRD — Syllabus Master</title>
+
+  <script src="/assets/js/auth-client.js"></script>
+
+  <style>
+    :root {
+      --bg: #0f1724;
+      --card: #0b1220;
+      --muted: #9aa4b2;
+      --accent: #06b6d4
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: Inter, system-ui, Segoe UI, Roboto, Arial
+    }
+
+    body {
+      margin: 0;
+      background: linear-gradient(180deg, #071022 0%, var(--bg) 100%);
+      color: #e6eef6
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      min-height: 100vh
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, #031426 0%, #071428 100%);
+      padding: 20px;
+      border-right: 1px solid rgba(255, 255, 255, 0.03)
+    }
+
+    .brand {
+      font-weight: 700;
+      font-size: 18px;
+      margin-bottom: 18px
+    }
+
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 8px
+    }
+
+    .nav a {
+      color: var(--muted);
+      text-decoration: none;
+      padding: 10px;
+      border-radius: 8px
+    }
+
+    .nav a.active {
+      background: rgba(255, 255, 255, 0.03);
+      color: #fff
+    }
+
+    .main {
+      padding: 24px
+    }
+
+    .card {
+      background: var(--card);
+      padding: 18px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.02)
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    .btn {
+      background: linear-gradient(90deg, var(--accent), #3b82f6);
+      padding: 10px 14px;
+      border: none;
+      border-radius: 10px;
+      color: #021;
+      font-weight: 700;
+      cursor: pointer
+    }
+
+    .ghost {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 8px 10px;
+      border-radius: 8px;
+      color: var(--muted);
+      cursor: pointer
+    }
+
+    .table {
+      margin-top: 20px
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse
+    }
+
+    th,
+    td {
+      padding: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 14px;
+      text-align: left
+    }
+
+    th {
+      color: var(--muted)
+    }
+
+    .empty {
+      padding: 20px;
+      text-align: center;
+      color: var(--muted)
+    }
+
+    .progress {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 13px
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">HRD Admin</div>
+      <nav class="nav">
+        <a href="/hrd/schedule-admin.html">Dashboard</a>
+        <a href="/hrd/hod-list.html">HODs</a>
+        <a href="/hrd/teacher-list.html">Teachers</a>
+        <a class="active" href="/hrd/syllabus-master.html">Syllabus Master</a>
+        <a href="/hrd/create-user.html">Create User</a>
+        <a href="/login.html">Logout</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+
+      <div class="card">
+        <h2 style="margin:0 0 6px 0">Syllabus Master</h2>
+        <p class="muted">Upload the official syllabus PDF and manage stored files</p>
+
+        <div style="margin-top:12px;display:flex;align-items:center;gap:12px">
+          <input id="fileInput" type="file" accept="application/pdf" />
+          <button id="uploadBtn" class="btn">Upload PDF</button>
+        </div>
+
+        <div id="uploadStatus" class="progress"></div>
+
+        <div class="table" style="margin-top:22px">
+          <table id="syllTable">
+            <thead>
+              <tr>
+                <th>File</th>
+                <th>Uploaded On</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+          <div id="emptyState" class="empty" style="display:none">No syllabus files uploaded yet.</div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    const tbody = document.getElementById('tbody')
+    const emptyState = document.getElementById('emptyState')
+    const uploadBtn = document.getElementById('uploadBtn')
+    const fileInput = document.getElementById('fileInput')
+    const uploadStatus = document.getElementById('uploadStatus')
+
+    // API Helper
+    async function api(path, opts = {}) {
+      const token = localStorage.getItem('hrd_token')
+      if (!token) {
+        window.location.href = '/login.html'
+        return
+      }
+      const headers = opts.headers || {}
+      headers['Authorization'] = 'Bearer ' + token
+      opts.headers = headers
+      const res = await fetch(path, opts)
+      if (res.status === 401 || res.status === 403) {
+        localStorage.removeItem('hrd_token')
+        window.location.href = '/login.html'
+        return
+      }
+      const txt = await res.text()
+      try { return JSON.parse(txt) } catch (e) { return txt }
+    }
+
+    let files = []
+
+    async function loadFiles() {
+      try {
+        const data = await api('/api/syllabus')
+        if (!Array.isArray(data)) throw new Error()
+        files = data
+      } catch (e) {
+        files = []
+      }
+      render()
+    }
+
+    function render() {
+      tbody.innerHTML = ''
+      if (files.length === 0) {
+        emptyState.style.display = 'block'
+        document.getElementById('syllTable').style.display = 'none'
+        return
+      }
+      emptyState.style.display = 'none'
+      document.getElementById('syllTable').style.display = ''
+
+      files.forEach(f => {
+        const tr = document.createElement('tr')
+        tr.innerHTML = `
+      <td>${f.filename}</td>
+      <td>${f.uploaded}</td>
+      <td>
+        <button class="ghost view" data-file="${f.filename}">View</button>
+        <button class="ghost del" data-file="${f.filename}">Delete</button>
+      </td>
+    `
+        tbody.appendChild(tr)
+      })
+    }
+
+    uploadBtn.addEventListener('click', async () => {
+      const file = fileInput.files[0]
+      if (!file) { uploadStatus.textContent = 'Select a PDF first'; return }
+      uploadStatus.textContent = 'Uploading...'
+
+      const fd = new FormData()
+      fd.append('file', file)
+
+      try {
+        const res = await api('/api/syllabus', {
+          method: 'POST',
+          body: fd
+        })
+
+        if (res.error || (typeof res === 'string' && res.includes('error'))) {
+          uploadStatus.textContent = res.error || 'Upload failed'
+          return
+        }
+
+        uploadStatus.textContent = 'Uploaded!'
+        fileInput.value = ''
+        await loadFiles()
+      } catch (e) {
+        uploadStatus.textContent = 'Network or server error'
+      }
+    })
+
+    document.addEventListener('click', async e => {
+      const v = e.target.closest('.view')
+      if (v) {
+        const fname = v.dataset.file
+        window.open('/uploads/' + fname, '_blank')
+      }
+
+      const d = e.target.closest('.del')
+      if (d) {
+        const fname = d.dataset.file
+        if (!confirm('Delete ' + fname + '?')) return
+
+        try {
+          const res = await api('/api/syllabus/' + fname, {
+            method: 'DELETE'
+          })
+
+          if (res.error) { alert(res.error || 'delete failed'); return }
+
+          await loadFiles()
+        } catch (err) {
+          alert('network/server error')
+        }
+      }
+    })
+
+    loadFiles()
+  </script>
+
+</body>
+
+</html>

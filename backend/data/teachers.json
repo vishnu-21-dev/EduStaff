@@ -1,0 +1,179 @@
+[
+  {
+    "id": 1,
+    "name": "Dr. Arjun Kumar",
+    "email": "arjun.kumar@college.edu",
+    "department": "Computer Science",
+    "subjects": [
+      "Data Structures",
+      "Algorithms"
+    ],
+    "phone": "9876543210",
+    "profilePic": "/uploads/profile_arjun.jpg",
+    "progress": {
+      "percentage": 72,
+      "lastUpdated": "2025-11-20T09:30:00.000Z",
+      "todos": []
+    },
+    "createdAt": "2025-08-01T08:00:00.000Z",
+    "updatedAt": "2025-11-20T09:30:00.000Z"
+  },
+  {
+    "id": 2,
+    "name": "Ms. Nidhi Sharma",
+    "email": "nidhi.sharma@college.edu",
+    "department": "Electronics",
+    "subjects": [
+      "Digital Electronics",
+      "Microprocessors"
+    ],
+    "phone": "9123456780",
+    "profilePic": "/uploads/profile_nidhi.jpg",
+    "progress": {
+      "percentage": 85,
+      "lastUpdated": "2025-11-18T14:10:00.000Z",
+      "todos": []
+    },
+    "createdAt": "2025-09-12T10:00:00.000Z",
+    "updatedAt": "2025-11-18T14:10:00.000Z"
+  },
+  {
+    "id": 3,
+    "name": "Mr. Rohit Verma",
+    "email": "rohit.verma@college.edu",
+    "department": "Mechanical",
+    "subjects": [
+      "Thermodynamics",
+      "Fluid Mechanics"
+    ],
+    "phone": "9988001122",
+    "profilePic": "/uploads/profile_rohit.jpg",
+    "progress": {
+      "percentage": 40,
+      "lastUpdated": "2025-10-11T11:00:00.000Z",
+      "todos": []
+    },
+    "createdAt": "2025-06-15T09:00:00.000Z",
+    "updatedAt": "2025-10-11T11:00:00.000Z"
+  },
+  {
+    "id": 4,
+    "name": "Dr. Priya Nair",
+    "email": "priya.nair@college.edu",
+    "department": "Civil",
+    "subjects": [
+      "Structural Analysis",
+      "Design of Concrete Structures"
+    ],
+    "phone": "9012345678",
+    "profilePic": "/uploads/profile_priya.jpg",
+    "progress": {
+      "percentage": 55,
+      "lastUpdated": "2025-11-05T16:20:00.000Z",
+      "todos": []
+    },
+    "createdAt": "2025-05-20T07:30:00.000Z",
+    "updatedAt": "2025-11-05T16:20:00.000Z"
+  },
+  {
+    "id": 5,
+    "name": "Ms. Kavya Menon",
+    "email": "kavya.menon@college.edu",
+    "department": "Computer Science",
+    "subjects": [
+      "Operating Systems",
+      "Computer Networks"
+    ],
+    "phone": "9078563412",
+    "profilePic": "/uploads/profile_kavya.jpg",
+    "progress": {
+      "percentage": 90,
+      "lastUpdated": "2025-11-22T12:00:00.000Z",
+      "todos": []
+    },
+    "createdAt": "2025-09-01T12:00:00.000Z",
+    "updatedAt": "2025-11-22T12:00:00.000Z"
+  },
+  {
+    "id": 6,
+    "name": "Mr. Sanjay Patel",
+    "email": "sanjay.patel@college.edu",
+    "department": "Electronics",
+    "subjects": [
+      "Signals and Systems",
+      "Embedded Systems"
+    ],
+    "phone": "9162738490",
+    "profilePic": "/uploads/profile_sanjay.jpg",
+    "progress": {
+      "percentage": 30,
+      "lastUpdated": "2025-10-01T08:45:00.000Z",
+      "todos": []
+    },
+    "createdAt": "2025-04-18T10:15:00.000Z",
+    "updatedAt": "2025-10-01T08:45:00.000Z"
+  },
+  {
+    "empId": "T001",
+    "name": "Test Teacher",
+    "email": "test@example.com",
+    "phone": "1234567890",
+    "dept": "Computer Science",
+    "dob": "15011990",
+    "role": "teacher",
+    "pct": 0,
+    "updated": "2025-11-28",
+    "courses": [],
+    "createdAt": "2025-11-28T03:52:20.770Z",
+    "id": 7
+  },
+  {
+    "empId": "DEMO001",
+    "name": "Demo Teacher",
+    "email": "demo@example.com",
+    "phone": "9998887776",
+    "dept": "Computer Science",
+    "dob": "01011995",
+    "role": "teacher",
+    "pct": 0,
+    "updated": "2025-11-28",
+    "courses": [],
+    "createdAt": "2025-11-28T04:10:19.875Z",
+    "id": 8
+  },
+  {
+    "empId": "T500",
+    "name": "Test Demo",
+    "email": "testdemo@gmail.com",
+    "phone": "1234567890",
+    "dept": "cse",
+    "dob": "11111999",
+    "role": "teacher",
+    "pct": 0,
+    "updated": "2025-11-28",
+    "courses": [],
+    "createdAt": "2025-11-28T04:19:41.516Z",
+    "id": 9
+  },
+  {
+    "empId": "T1234",
+    "name": "Batman",
+    "email": "batman@gmail.com",
+    "phone": "",
+    "dept": "CSE",
+    "dob": "21072006",
+    "role": "teacher",
+    "pct": 0,
+    "updated": "2025-11-28",
+    "courses": [],
+    "createdAt": "2025-11-28T09:20:07.820Z",
+    "id": 10,
+    "extracurricular": [
+      {
+        "title": "Save the city",
+        "type": "Survival",
+        "date": "25025-11-30"
+      }
+    ]
+  }
+]

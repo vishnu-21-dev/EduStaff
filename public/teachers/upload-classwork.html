@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Upload Materials — SNPSU HRD</title>
+<style>
+:root{--bg:#f6fbff;--card:#fff;--accent:#0b63d6;--muted:#6b7280;--danger:#ef4444}
+*{box-sizing:border-box;font-family:Inter,system-ui,Segoe UI,Roboto,Arial}
+body{margin:0;min-height:100vh;background:var(--bg);padding:20px;display:flex;justify-content:center}
+.wrap{width:100%;max-width:1100px}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.brand{font-weight:700;color:var(--accent)}
+.btn{padding:10px 14px;border-radius:8px;border:0;background:var(--accent);color:#fff;cursor:pointer;font-weight:700}
+.ghost{background:#fff;border:1px solid #e6eefb;color:var(--accent)}
+.grid{display:grid;grid-template-columns:1fr 360px;gap:18px}
+.card{background:var(--card);padding:16px;border-radius:12px;box-shadow:0 10px 30px rgba(11,99,214,0.06)}
+.sectionTitle{font-weight:700;margin-bottom:8px}
+.row{display:flex;gap:10px}
+.input,select,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid #e6eefb;font-size:14px;background:#fff}
+textarea{min-height:100px;resize:vertical}
+.fileList{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.fileItem{padding:8px;border-radius:8px;background:#fbfeff;border:1px solid #eef6ff;display:flex;justify-content:space-between;align-items:center}
+.small{font-size:13px;color:var(--muted)}
+.error{color:var(--danger);margin-top:8px}
+.preview{max-width:100%;border-radius:8px;margin-top:8px}
+.note{font-size:13px;color:var(--muted);margin-top:8px}
+.tag{padding:6px 8px;border-radius:8px;font-weight:700;font-size:13px}
+.uploading{opacity:.8}
+.link{color:var(--accent);cursor:pointer;text-decoration:underline}
+@media(max-width:980px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="brand">SNPSU · Upload Materials</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn ghost" id="backBtn">Back</button>
+      <button class="btn" id="logoutBtn">Logout</button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="sectionTitle">1) Upload Assignment</div>
+        <div class="small">Assignments are visible to students. Add title, short description and deadline.</div>
+        <form id="assignForm" autocomplete="off">
+          <div style="margin-top:10px">
+            <input id="assignTitle" class="input" placeholder="Assignment title (eg. Assignment 2)" required />
+          </div>
+          <div style="margin-top:10px">
+            <textarea id="assignDesc" placeholder="Short description / instructions"></textarea>
+          </div>
+          <div class="row" style="margin-top:10px">
+            <input id="assignDeadline" class="input" type="date" />
+            <select id="assignDept" class="input" style="max-width:180px">
+              <option value="">Dept (optional)</option>
+              <option>CSE</option>
+              <option>ECE</option>
+              <option>ME</option>
+              <option>HRD</option>
+            </select>
+          </div>
+          <div style="margin-top:10px">
+            <label class="small">Attachments (pdf, ppt, docx, max 5MB each)</label>
+            <input id="assignFiles" type="file" multiple />
+            <div id="assignFileList" class="fileList"></div>
+            <div id="assignError" class="error"></div>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <button class="btn" type="submit" id="postAssign">Post Assignment</button>
+            <button type="button" class="btn ghost" id="clearAssign">Clear</button>
+          </div>
+          <div id="assignMsg" class="note"></div>
+        </form>
+      </div>
+
+      <div class="card" style="margin-bottom:14px">
+        <div class="sectionTitle">2) Upload Notes & PPTs</div>
+        <div class="small">Upload lecture notes, slides or supplementary files. Students can download these.</div>
+        <form id="notesForm" autocomplete="off">
+          <div style="margin-top:10px">
+            <input id="notesTitle" class="input" placeholder="Title (eg. Week 5 Slides)" required />
+          </div>
+          <div style="margin-top:10px">
+            <textarea id="notesDesc" placeholder="Short description (optional)"></textarea>
+          </div>
+          <div style="margin-top:10px">
+            <label class="small">Attachments (pdf, ppt, pptx, docx, images)</label>
+            <input id="notesFiles" type="file" multiple />
+            <div id="notesFileList" class="fileList"></div>
+            <div id="notesError" class="error"></div>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <button class="btn" type="submit" id="postNotes">Post Notes</button>
+            <button type="button" class="btn ghost" id="clearNotes">Clear</button>
+          </div>
+          <div id="notesMsg" class="note"></div>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="sectionTitle">3) In-class materials / Misc</div>
+        <div class="small">Quick uploads for in-class demos, sample code, or misc files.</div>
+        <form id="miscForm" autocomplete="off">
+          <div style="margin-top:10px">
+            <input id="miscTitle" class="input" placeholder="Title" required />
+          </div>
+          <div style="margin-top:10px">
+            <textarea id="miscDesc" placeholder="Description (optional)"></textarea>
+          </div>
+          <div style="margin-top:10px">
+            <label class="small">Attachments</label>
+            <input id="miscFiles" type="file" multiple />
+            <div id="miscFileList" class="fileList"></div>
+            <div id="miscError" class="error"></div>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <button class="btn" type="submit" id="postMisc">Post</button>
+            <button type="button" class="btn ghost" id="clearMisc">Clear</button>
+          </div>
+          <div id="miscMsg" class="note"></div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="font-weight:700;margin-bottom:8px">Preview / Recent uploads</div>
+      <div id="recentArea" class="note"></div>
+      <div style="margin-top:12px">
+        <div style="font-weight:700">Tips</div>
+        <div class="small" style="margin-top:6px">Files are saved to shared classwork store for this prototype. For production, use server/cloud storage and keep files small (≤5MB).</div>
+        <div style="margin-top:8px"><span class="link" id="openClasswork">Open Classwork view</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  function getLogged(){ try{return JSON.parse(localStorage.getItem('loggedInTeacher')||'null')}catch(e){return null} }
+  const logged = getLogged()
+  if(!logged){ location.href = './login.html'; return }
+
+  document.getElementById('backBtn').addEventListener('click', ()=> location.href = './dashboard.html')
+  document.getElementById('logoutBtn').addEventListener('click', ()=> { localStorage.removeItem('loggedInTeacher'); location.href = './login.html' })
+  document.getElementById('openClasswork').addEventListener('click', ()=> location.href = './classwork.html')
+
+  function loadShared(){ try{const s = JSON.parse(localStorage.getItem('dept_classwork')||'null'); return Array.isArray(s)?s:null}catch(e){return null} }
+  function saveShared(list){ localStorage.setItem('dept_classwork', JSON.stringify(list)) }
+
+  if(!loadShared()) saveShared([])
+
+  const MAX_SIZE = 5 * 1024 * 1024
+  function uid(){ return 'cw' + Date.now() + Math.floor(Math.random()*999) }
+
+  async function handleFiles(inputEl, listEl, errorEl){
+    errorEl.textContent = ''
+    const files = Array.from(inputEl.files || [])
+    for(const f of files){
+      if(f.size > MAX_SIZE){ errorEl.textContent = `File ${f.name} exceeds 5MB`; continue }
+      const data = await new Promise((res, rej) => {
+        const r = new FileReader()
+        r.onload = ()=> res(r.result)
+        r.onerror = ()=> rej()
+        r.readAsDataURL(f)
+      })
+      const arr = JSON.parse(localStorage.getItem('_temp_uploads') || '[]')
+      arr.push({ name: f.name, size: f.size, type: f.type, data })
+      localStorage.setItem('_temp_uploads', JSON.stringify(arr))
+    }
+    renderTemp(listEl)
+    inputEl.value = ''
+  }
+
+  function renderTemp(listEl){
+    const arr = JSON.parse(localStorage.getItem('_temp_uploads') || '[]')
+    listEl.innerHTML = ''
+    arr.forEach((f,i)=>{
+      const div = document.createElement('div')
+      div.className = 'fileItem'
+      div.innerHTML = `<div style="font-weight:700">${f.name}</div><div class="small">${Math.round(f.size/1024)} KB</div>`
+      const rem = document.createElement('button')
+      rem.className = 'ghost'
+      rem.textContent = 'Remove'
+      rem.addEventListener('click', ()=> {
+        arr.splice(i,1)
+        localStorage.setItem('_temp_uploads', JSON.stringify(arr))
+        renderTemp(listEl)
+      })
+      div.appendChild(rem)
+      listEl.appendChild(div)
+    })
+  }
+
+  async function submitForm(opts){
+    const { title, desc, deadline, dept, category, listEl, errorEl, msgEl } = opts
+    errorEl.textContent = ''
+    msgEl.textContent = ''
+    if(!title){ errorEl.textContent = 'Title required'; return }
+    const shared = loadShared() || []
+    const temp = JSON.parse(localStorage.getItem('_temp_uploads') || '[]')
+    const item = {
+      id: uid(),
+      title,
+      category,
+      description: desc || '',
+      deadline: deadline || '',
+      posted: new Date().toISOString(),
+      dept: dept || (logged.dept || ''),
+      priority: category === 'Assignments' ? 'High' : 'Normal',
+      attachments: temp.map(f => ({ name: f.name, size: f.size, type: f.type, data: f.data }))
+    }
+    shared.unshift(item)
+    saveShared(shared)
+    localStorage.removeItem('_temp_uploads')
+    renderRecent()
+    msgEl.textContent = 'Posted'
+    listEl.innerHTML = ''
+  }
+
+  document.getElementById('assignFiles').addEventListener('change', ()=> handleFiles(document.getElementById('assignFiles'), document.getElementById('assignFileList'), document.getElementById('assignError')))
+  document.getElementById('notesFiles').addEventListener('change', ()=> handleFiles(document.getElementById('notesFiles'), document.getElementById('notesFileList'), document.getElementById('notesError')))
+  document.getElementById('miscFiles').addEventListener('change', ()=> handleFiles(document.getElementById('miscFiles'), document.getElementById('miscFileList'), document.getElementById('miscError')))
+
+  document.getElementById('clearAssign').addEventListener('click', ()=>{
+    localStorage.removeItem('_temp_uploads')
+    document.getElementById('assignFileList').innerHTML = ''
+    document.getElementById('assignForm').reset()
+    document.getElementById('assignMsg').textContent = ''
+    document.getElementById('assignError').textContent = ''
+  })
+  document.getElementById('clearNotes').addEventListener('click', ()=>{
+    localStorage.removeItem('_temp_uploads')
+    document.getElementById('notesFileList').innerHTML = ''
+    document.getElementById('notesForm').reset()
+    document.getElementById('notesMsg').textContent = ''
+    document.getElementById('notesError').textContent = ''
+  })
+  document.getElementById('clearMisc').addEventListener('click', ()=>{
+    localStorage.removeItem('_temp_uploads')
+    document.getElementById('miscFileList').innerHTML = ''
+    document.getElementById('miscForm').reset()
+    document.getElementById('miscMsg').textContent = ''
+    document.getElementById('miscError').textContent = ''
+  })
+
+  document.getElementById('assignForm').addEventListener('submit', e=>{
+    e.preventDefault()
+    const title = (document.getElementById('assignTitle').value||'').trim()
+    const desc = (document.getElementById('assignDesc').value||'').trim()
+    const deadline = document.getElementById('assignDeadline').value || ''
+    const dept = document.getElementById('assignDept').value || ''
+    submitForm({ title, desc, deadline, dept, category:'Assignments', listEl: document.getElementById('assignFileList'), errorEl: document.getElementById('assignError'), msgEl: document.getElementById('assignMsg') })
+    document.getElementById('assignForm').reset()
+  })
+
+  document.getElementById('notesForm').addEventListener('submit', e=>{
+    e.preventDefault()
+    const title = (document.getElementById('notesTitle').value||'').trim()
+    const desc = (document.getElementById('notesDesc').value||'').trim()
+    submitForm({ title, desc, deadline:'', dept:'', category:'Notes & PPTs', listEl: document.getElementById('notesFileList'), errorEl: document.getElementById('notesError'), msgEl: document.getElementById('notesMsg') })
+    document.getElementById('notesForm').reset()
+  })
+
+  document.getElementById('miscForm').addEventListener('submit', e=>{
+    e.preventDefault()
+    const title = (document.getElementById('miscTitle').value||'').trim()
+    const desc = (document.getElementById('miscDesc').value||'').trim()
+    submitForm({ title, desc, deadline:'', dept:'', category:'Misc', listEl: document.getElementById('miscFileList'), errorEl: document.getElementById('miscError'), msgEl: document.getElementById('miscMsg') })
+    document.getElementById('miscForm').reset()
+  })
+
+  function renderRecent(){
+    const shared = loadShared() || []
+    const html = shared.slice(0,8).map(it=>{
+      const dd = it.deadline ? ` · deadline: ${it.deadline}` : ''
+      return `<div style="padding:8px;border-bottom:1px solid #eef6ff"><div style="font-weight:700">${it.title}</div><div class="small">${it.category} · ${it.dept||'All'}${dd}</div></div>`
+    }).join('')
+    document.getElementById('recentArea').innerHTML = html || '<div class="small">No uploads yet</div>'
+  }
+
+  renderRecent()
+})
+</script>
+</body>
+</html>

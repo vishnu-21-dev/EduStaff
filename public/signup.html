@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sign up — SNPSU HRD</title>
+  <style>
+    :root {
+      --bg: #f6fbff;
+      --card: #fff;
+      --accent: #0b63d6;
+      --muted: #6b7280
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: Inter, system-ui, Segoe UI, Roboto, Arial
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px
+    }
+
+    .box {
+      width: 100%;
+      max-width: 920px;
+      background: var(--card);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 12px 40px rgba(11, 99, 214, 0.06);
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 18px
+    }
+
+    .left {
+      padding: 4px 8px
+    }
+
+    .h {
+      font-weight: 800;
+      color: var(--accent);
+      font-size: 20px;
+      margin-bottom: 6px
+    }
+
+    .sub {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 12px
+    }
+
+    .form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px
+    }
+
+    .input,
+    select {
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #e6eefb;
+      font-size: 14px;
+      background: #fff
+    }
+
+    .row {
+      display: flex;
+      gap: 10px
+    }
+
+    .btn {
+      padding: 10px;
+      border-radius: 8px;
+      border: 0;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer
+    }
+
+    .ghost {
+      background: #fff;
+      border: 1px solid #e6eefb;
+      color: var(--accent)
+    }
+
+    .note {
+      font-size: 13px;
+      color: var(--muted)
+    }
+
+    .err {
+      color: #ef4444;
+      font-size: 13px;
+      margin-top: 6px
+    }
+
+    .success {
+      color: #059669;
+      font-size: 13px;
+      margin-top: 6px
+    }
+
+    .link {
+      margin-top: 12px;
+      color: #0b63d6;
+      cursor: pointer;
+      text-decoration: underline
+    }
+
+    @media(max-width:920px) {
+      .box {
+        grid-template-columns: 1fr
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="box">
+    <div class="left">
+      <div class="h">Create account</div>
+      <div class="sub">Create Teacher, HOD or Admin accounts. Employee ID is the login id. DOB will be used as password
+        (DDMMYYYY).</div>
+
+      <form id="signupForm" class="form" autocomplete="off">
+        <input id="empId" class="input" placeholder="Employee ID (eg. T101)" required />
+        <input id="fullName" class="input" placeholder="Full name" required />
+        <div class="row">
+          <input id="email" class="input" placeholder="Email address" type="email" />
+          <input id="phone" class="input" placeholder="Phone" />
+        </div>
+        <div class="row">
+          <input id="dept" class="input" placeholder="Department (eg. CSE)" />
+          <select id="role" class="input">
+            <option value="teacher">Teacher</option>
+            <option value="hod">HOD</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+        <div style="display:flex;flex-direction:column">
+          <label class="note" style="margin-bottom:6px">Date of birth (used as password)</label>
+          <input id="dob" class="input" type="date" required />
+        </div>
+
+        <div style="display:flex;gap:10px;align-items:center;margin-top:6px">
+          <button type="submit" class="btn">Create account & continue</button>
+          <button type="button" class="btn ghost" id="toLogin">Already have an account</button>
+        </div>
+        <div id="msg" class="note"></div>
+        <div id="error" class="err"></div>
+        <div id="success" class="success"></div>
+      </form>
+    </div>
+
+    <div
+      style="background:linear-gradient(180deg,#0b63d6,#0a57c1);color:#fff;border-radius:8px;padding:18px;display:flex;flex-direction:column;justify-content:center;align-items:center">
+      <h2 style="margin:0">SNPSU · HRD</h2>
+      <div class="note" style="text-align:center;margin-top:8px;color:#cfe7ff">One signup for all roles. You will be
+        redirected to the appropriate dashboard after signup.</div>
+      <div class="link" id="openLogin">Go to login</div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      function toDDMMYYYY(dateStr) {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return '';
+        const dd = String(d.getDate()).padStart(2, '0');
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const yyyy = d.getFullYear();
+        return dd + mm + yyyy;
+      }
+      function loadUsers() { try { const t = JSON.parse(localStorage.getItem('teachers') || '[]'); return Array.isArray(t) ? t : [] } catch (e) { return [] } }
+      function saveUsers(list) { localStorage.setItem('teachers', JSON.stringify(list)) }
+      function redirectByRole(role) {
+        if (!role) location.href = './teachers/dashboard.html'
+        else if (role.toLowerCase() === 'teacher') location.href = './teachers/dashboard.html'
+        else if (role.toLowerCase() === 'hod') location.href = './hrd/syllabus-view.html'
+        else if (role.toLowerCase() === 'admin') location.href = './hrd/schedule-admin.html'
+        else location.href = './teachers/dashboard.html'
+      }
+
+      document.getElementById('toLogin').addEventListener('click', () => location.href = './teachers/login.html')
+      document.getElementById('openLogin').addEventListener('click', () => location.href = './teachers/login.html')
+
+      const form = document.getElementById('signupForm')
+      const err = document.getElementById('error')
+      const msg = document.getElementById('msg')
+      const success = document.getElementById('success')
+
+      form.addEventListener('submit', async e => {
+        e.preventDefault()
+        err.textContent = ''; msg.textContent = ''; success.textContent = ''
+
+        const empId = (document.getElementById('empId').value || '').trim()
+        const fullName = (document.getElementById('fullName').value || '').trim()
+        const email = (document.getElementById('email').value || '').trim()
+        const phone = (document.getElementById('phone').value || '').trim()
+        const dept = (document.getElementById('dept').value || '').trim()
+        const role = (document.getElementById('role').value || 'teacher').trim()
+        const dobRaw = document.getElementById('dob').value || ''
+
+        if (!empId || !fullName || !dobRaw) {
+          err.textContent = 'Employee ID, name and DOB are required'
+          return
+        }
+
+        const dob = toDDMMYYYY(dobRaw)
+        if (dob.length !== 8) {
+          err.textContent = 'Invalid DOB'
+          return
+        }
+
+        // Save to localStorage first (works offline)
+        const users = loadUsers()
+        if (users.find(u => u.empId && u.empId.toLowerCase() === empId.toLowerCase())) {
+          err.textContent = 'Employee ID already exists in local storage'
+          return
+        }
+
+        const record = { empId, fullName, email, phone, dept, dob, role, createdAt: new Date().toISOString() }
+        users.push(record)
+        saveUsers(users)
+
+        // Try to sync with backend
+        msg.textContent = 'Syncing with server...'
+        try {
+          const res = await fetch('/api/teachers', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(record)
+          })
+          const data = await res.json()
+
+          if (!res.ok) {
+            // Backend error, but localStorage save succeeded
+            console.warn('Backend sync failed:', data.error)
+            msg.textContent = 'Saved locally (server sync failed)'
+          } else {
+            msg.textContent = ''
+            success.textContent = 'Account created and synced. Logging you in...'
+          }
+        } catch (e) {
+          // Network error, but localStorage save succeeded
+          console.warn('Backend unreachable:', e)
+          msg.textContent = 'Saved locally (server offline)'
+        }
+
+        // Login regardless of backend sync status
+        localStorage.setItem('loggedInTeacher', JSON.stringify({ empId: record.empId, name: record.fullName, role: record.role, dept: record.dept }))
+        setTimeout(() => redirectByRole(record.role), 1000)
+      })
+    })
+  </script>
+</body>
+
+</html>

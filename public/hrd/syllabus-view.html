@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>HOD — Syllabus Viewer · SNPSU</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root{--bg:#f6fbff;--card:#fff;--accent:#0b63d6;--muted:#6b7280;--glass:rgba(11,99,214,0.06);--ok:#10b981}
+*{box-sizing:border-box;font-family:Inter,system-ui,Segoe UI,Roboto,Arial}
+body{margin:0;background:linear-gradient(180deg,#f0f8ff 0%,var(--bg) 100%);min-height:100vh;padding:20px;display:flex;justify-content:center}
+.wrap{width:100%;max-width:1200px}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.title{font-weight:800;color:var(--accent);font-size:20px}
+.sub{color:var(--muted);font-size:13px}
+.card{background:var(--card);padding:14px;border-radius:12px;box-shadow:0 10px 30px var(--glass);margin-bottom:12px}
+.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.input,select{padding:10px;border-radius:8px;border:1px solid #e6eefb;background:#fff;font-size:14px}
+.btn{padding:10px 12px;border-radius:8px;border:0;background:var(--accent);color:#fff;font-weight:700;cursor:pointer}
+.ghost{background:#fff;border:1px solid #e6eefb;color:var(--accent)}
+.table{width:100%;border-collapse:collapse;margin-top:12px}
+.table th{background:#f8fbff;text-align:left;padding:10px;border-bottom:1px solid #eef6ff;color:var(--muted);font-weight:700}
+.table td{padding:10px;border-bottom:1px solid #f1f5f9;vertical-align:top}
+.filterRow{display:flex;gap:8px;align-items:center;margin-bottom:6px}
+.stats{display:flex;gap:12px;flex-wrap:wrap}
+.stat{padding:10px;border-radius:8px;background:#fff;border:1px solid #eef6ff;min-width:140px}
+.empty{color:var(--muted);padding:20px;text-align:center}
+.small{font-size:13px;color:var(--muted)}
+.badge{padding:6px 8px;border-radius:8px;font-weight:700;font-size:12px;background:#f3f8ff;color:var(--accent)}
+@media(max-width:980px){.filterRow{flex-direction:column;align-items:stretch}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div>
+      <div class="title">HOD · Syllabus Viewer</div>
+      <div class="sub">View teacher updates, export CSV, monitor progress</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="btn ghost" id="backBtn">Back</button>
+      <button class="btn" id="logoutBtn">Logout</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="filterRow">
+      <select id="teacherFilter" class="input">
+        <option value="all">All teachers</option>
+      </select>
+      <select id="courseFilter" class="input">
+        <option value="all">All courses</option>
+      </select>
+      <select id="unitFilter" class="input">
+        <option value="all">All units</option>
+        <option>Unit 1</option><option>Unit 2</option><option>Unit 3</option><option>Unit 4</option><option>Unit 5</option>
+      </select>
+      <input id="fromDate" type="date" class="input" />
+      <input id="toDate" type="date" class="input" />
+      <button class="btn" id="applyBtn">Apply</button>
+      <button class="btn ghost" id="clearBtn">Clear</button>
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <button class="btn" id="exportCsv">Export CSV</button>
+      </div>
+    </div>
+
+    <div class="stats" style="margin-top:10px">
+      <div class="stat"><div class="small">Total updates</div><div id="stat_total" style="font-weight:800">0</div></div>
+      <div class="stat"><div class="small">Distinct teachers</div><div id="stat_teachers" style="font-weight:800">0</div></div>
+      <div class="stat"><div class="small">Avg completion</div><div id="stat_avg" style="font-weight:800">0%</div></div>
+      <div class="stat"><div class="small">Pending units*</div><div id="stat_pending" style="font-weight:800">—</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <table class="table" id="dataTable">
+      <thead>
+        <tr>
+          <th style="width:160px">Date · Time</th>
+          <th style="width:160px">Teacher</th>
+          <th>Course · Unit</th>
+          <th style="width:120px">Progress</th>
+          <th style="width:140px">Proofs</th>
+          <th style="width:120px">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+    <div id="empty" class="empty" style="display:none">No entries found</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  function safeParse(k, fallback){ try{ const v = JSON.parse(localStorage.getItem(k)||'null'); return v===null?fallback:v }catch(e){ return fallback } }
+  function getLogged(){ return safeParse('loggedInTeacher', null) }
+  const user = getLogged()
+  if(!user){ location.href = '../teachers/login.html'; return }
+  const role = (user.role||'').toLowerCase()
+  if(role !== 'hod' && role !== 'admin'){ location.href = '../teachers/dashboard.html'; return }
+
+  function loadMaster(){ return safeParse('syllabus_master', []) }
+  function loadTeachers(){ return safeParse('teachers', []) }
+
+  const teacherFilter = document.getElementById('teacherFilter')
+  const courseFilter = document.getElementById('courseFilter')
+  const unitFilter = document.getElementById('unitFilter')
+  const fromDate = document.getElementById('fromDate')
+  const toDate = document.getElementById('toDate')
+  const applyBtn = document.getElementById('applyBtn')
+  const clearBtn = document.getElementById('clearBtn')
+  const exportBtn = document.getElementById('exportCsv')
+  const tableBody = document.getElementById('tableBody')
+  const emptyEl = document.getElementById('empty')
+  const statTotal = document.getElementById('stat_total')
+  const statTeachers = document.getElementById('stat_teachers')
+  const statAvg = document.getElementById('stat_avg')
+  const statPending = document.getElementById('stat_pending')
+
+  function uniq(arr){ return Array.from(new Set(arr)) }
+
+  function buildFilters(){
+    const master = loadMaster()
+    const teachers = loadTeachers()
+    teacherFilter.innerHTML = '<option value="all">All teachers</option>'
+    teachers.forEach(t=>{
+      const o = document.createElement('option'); o.value = t.empId; o.textContent = `${t.fullName||t.empId} · ${t.dept||''}`; teacherFilter.appendChild(o)
+    })
+    const courses = uniq(master.map(m=> (m.course||'').trim()).filter(Boolean)).sort()
+    courseFilter.innerHTML = '<option value="all">All courses</option>'
+    courses.forEach(c=>{ const o=document.createElement('option'); o.value=c; o.textContent=c; courseFilter.appendChild(o) })
+  }
+
+  function applyFilters(){
+    const master = loadMaster().slice()
+    const teacher = teacherFilter.value
+    const course = courseFilter.value
+    const unit = unitFilter.value
+    const from = fromDate.value
+    const to = toDate.value
+
+    let rows = master.slice()
+
+    if(teacher && teacher !== 'all') rows = rows.filter(r => (r.empId||'').toLowerCase() === teacher.toLowerCase())
+    if(course && course !== 'all') rows = rows.filter(r => (r.course||'').toLowerCase() === course.toLowerCase())
+    if(unit && unit !== 'all') rows = rows.filter(r => (r.unit||'').toLowerCase() === unit.toLowerCase())
+    if(from) rows = rows.filter(r => (r.date||'') >= from)
+    if(to) rows = rows.filter(r => (r.date||'') <= to)
+
+    rows.sort((a,b)=> ((b.date||'') + ' ' + (b.time||'')).localeCompare((a.date||'') + ' ' + (a.time||'') ))
+    renderTable(rows)
+    renderStats(rows)
+  }
+
+  function renderTable(rows){
+    tableBody.innerHTML = ''
+    if(!rows || rows.length === 0){ emptyEl.style.display = 'block'; return }
+    emptyEl.style.display = 'none'
+    rows.forEach(r=>{
+      const tr = document.createElement('tr')
+      const dt = `<div style="font-weight:700">${r.date||''}</div><div class="small">${r.time||''}</div>`
+      const teacher = `<div style="font-weight:700">${r.teacher||r.empId||'—'}</div><div class="small">${(r.dept||'')}</div>`
+      const course = `<div style="font-weight:700">${r.course||'—'}</div><div class="small">${r.unit||''}<div style="margin-top:6px;color:#111">${(r.topics||'').substring(0,200)}${(r.topics||'').length>200?'...':''}</div></div>`
+      const progress = r.percent ? `${r.percent}%` : '—'
+      const proofs = (r.proofs && r.proofs.length) ? r.proofs.map((p,i)=>`<div style="margin-bottom:6px"><a href="${p.data}" download="${p.name}" style="text-decoration:none;color:var(--accent)">${p.name}</a></div>`).join('') : '<div class="small">No files</div>'
+      const actions = `<button class="btn ghost" data-id="${r.id}" onclick="viewFull('${r.id}')">View</button>`
+      tr.innerHTML = `<td>${dt}</td><td>${teacher}</td><td>${course}</td><td style="vertical-align:middle">${progress}</td><td>${proofs}</td><td>${actions}</td>`
+      tableBody.appendChild(tr)
+    })
+  }
+
+  window.viewFull = function(id){
+    const master = loadMaster()
+    const item = master.find(x=>x.id===id)
+    if(!item){ alert('Not found') ; return }
+    const lines = [
+      `Teacher: ${item.teacher||item.empId||'—'}`,
+      `Dept: ${item.dept||'—'}`,
+      `Course: ${item.course||'—'}`,
+      `Unit: ${item.unit||'—'}`,
+      `Date: ${item.date||'—'} ${item.time||''}`,
+      `Progress: ${item.percent?item.percent+'%':'—'}`,
+      `Topics:\n${item.topics||'—'}`
+    ].join('\n\n')
+    alert(lines)
+  }
+
+  function renderStats(rows){
+    const total = rows.length
+    const teachers = uniq(rows.map(r=> r.empId || r.teacher || '—')).length
+    const percents = rows.map(r => parseFloat(r.percent||0)).filter(n=>!isNaN(n))
+    const avg = percents.length ? Math.round(percents.reduce((a,b)=>a+b,0)/percents.length) : 0
+    statTotal.textContent = total
+    statTeachers.textContent = teachers
+    statAvg.textContent = avg + '%'
+    const pendingUnits = computePending(rows)
+    statPending.textContent = pendingUnits.length ? pendingUnits.join(', ') : 'None'
+  }
+
+  function computePending(rows){
+    const byCourseUnit = {}
+    rows.forEach(r=>{
+      const key = `${(r.course||'').trim()}||${(r.unit||'').trim()}`
+      byCourseUnit[key] = byCourseUnit[key] || []
+      byCourseUnit[key].push(parseFloat(r.percent||0))
+    })
+    const pending = []
+    Object.entries(byCourseUnit).forEach(([k,arr])=>{
+      const [course,unit] = k.split('||')
+      const maxDone = Math.max(...arr)
+      if(maxDone < 100) pending.push(`${course} ${unit} (${maxDone || 0}%)`)
+    })
+    return pending
+  }
+
+  function exportCSV(){
+    const master = currentRowsForExport()
+    if(!master.length){ alert('No rows to export'); return }
+    const cols = ['date','time','teacher','empId','dept','course','unit','percent','topics','proofs']
+    const lines = [cols.join(',')]
+    master.forEach(r=>{
+      const proofs = (r.proofs || []).map(p=>p.name).join('; ')
+      const row = [
+        csvSafe(r.date||''),
+        csvSafe(r.time||''),
+        csvSafe(r.teacher||''),
+        csvSafe(r.empId||''),
+        csvSafe(r.dept||''),
+        csvSafe(r.course||''),
+        csvSafe(r.unit||''),
+        csvSafe(r.percent||''),
+        csvSafe((r.topics||'').replace(/\n/g,' ')),
+        csvSafe(proofs)
+      ]
+      lines.push(row.join(','))
+    })
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `syllabus_export_${new Date().toISOString().slice(0,10)}.csv`
+    document.body.appendChild(a)
+    a.click()
+    URL.revokeObjectURL(url)
+    a.remove()
+  }
+
+  function csvSafe(v){
+    if(v === null || v === undefined) return ''
+    const s = String(v).replace(/"/g,'""')
+    return `"${s}"`
+  }
+
+  function currentRowsForExport(){
+    const master = loadMaster()
+    const teacher = teacherFilter.value
+    const course = courseFilter.value
+    const unit = unitFilter.value
+    const from = fromDate.value
+    const to = toDate.value
+    let rows = master.slice()
+    if(teacher && teacher !== 'all') rows = rows.filter(r => (r.empId||'').toLowerCase() === teacher.toLowerCase())
+    if(course && course !== 'all') rows = rows.filter(r => (r.course||'').toLowerCase() === course.toLowerCase())
+    if(unit && unit !== 'all') rows = rows.filter(r => (r.unit||'').toLowerCase() === unit.toLowerCase())
+    if(from) rows = rows.filter(r => (r.date||'') >= from)
+    if(to) rows = rows.filter(r => (r.date||'') <= to)
+    return rows
+  }
+
+  function clearFilters(){
+    teacherFilter.value = 'all'
+    courseFilter.value = 'all'
+    unitFilter.value = 'all'
+    fromDate.value = ''
+    toDate.value = ''
+    applyFilters()
+  }
+
+  buildFilters()
+  applyFilters()
+
+  applyBtn.addEventListener('click', applyFilters)
+  clearBtn.addEventListener('click', clearFilters)
+  exportBtn.addEventListener('click', exportCSV)
+  document.getElementById('backBtn').addEventListener('click', ()=> location.href = '../teachers/dashboard.html')
+  document.getElementById('logoutBtn').addEventListener('click', ()=> { localStorage.removeItem('loggedInTeacher'); location.href = '../teachers/login.html' })
+})();
+</script>
+</body>
+</html>

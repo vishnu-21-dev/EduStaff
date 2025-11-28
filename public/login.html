@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Login — SNPSU HRD</title>
+  <script src="/assets/js/auth-client.js"></script>
+  <style>
+    body {
+      margin: 0;
+      background: #0b1220;
+      color: #fff;
+      font-family: Inter, system-ui, Arial;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center
+    }
+
+    .card {
+      background: #111827;
+      padding: 28px;
+      border-radius: 12px;
+      width: 92%;
+      max-width: 380px;
+      border: 1px solid #1f2937
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 14px
+    }
+
+    label {
+      font-size: 14px;
+      color: #9ca3af
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border-radius: 8px;
+      border: 1px solid #374151;
+      background: #000;
+      color: #fff
+    }
+
+    .btn {
+      width: 100%;
+      padding: 10px;
+      margin-top: 14px;
+      background: #0ea5e9;
+      border: none;
+      border-radius: 8px;
+      color: #000;
+      font-weight: 700;
+      cursor: pointer
+    }
+
+    .err {
+      margin-top: 10px;
+      color: #f87171;
+      display: none;
+      text-align: center
+    }
+
+    .small {
+      text-align: center;
+      color: #9ca3af;
+      font-size: 13px;
+      margin-top: 10px
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <h1>Login</h1>
+
+    <label>Employee ID / Username</label>
+    <input id="id" autocomplete="username" />
+
+    <label style="margin-top:12px">Password</label>
+    <input id="pw" type="password" autocomplete="current-password" />
+
+    <button class="btn" id="loginBtn">Login</button>
+    <div class="err" id="err"></div>
+    <div class="small">Admins → backend · Teachers/HODs → local signup</div>
+    <div class="small" style="margin-top:14px">Don't have an account? <a href="/signup.html"
+        style="color:#0ea5e9;text-decoration:none;font-weight:600">Sign up here</a></div>
+  </div>
+
+  <script>
+    (async function () {
+      const USERS_KEY = 'hrd_public_users_v1'
+      const SESSION_KEY = 'hrd_public_session_v1'
+      const errEl = document.getElementById('err')
+
+      // Try to ensure HRDAuth is available by loading common candidate paths.
+      async function ensureAuthClient() {
+        if (window.HRDAuth) return
+        const candidates = [
+          '/assets/js/auth-client.js',
+          'assets/js/auth-client.js',
+          './assets/js/auth-client.js'
+        ]
+        for (const p of candidates) {
+          try {
+            await new Promise((res, rej) => {
+              const s = document.createElement('script')
+              s.src = p
+              s.onload = res
+              s.onerror = rej
+              document.head.appendChild(s)
+            })
+            if (window.HRDAuth) return
+          } catch (e) {
+            // try next candidate
+          }
+        }
+      }
+
+      await ensureAuthClient()
+
+      function loadUsers() {
+        try { return JSON.parse(localStorage.getItem(USERS_KEY) || '[]') } catch (e) { return [] }
+      }
+      function saveSession(obj) { try { localStorage.setItem(SESSION_KEY, JSON.stringify(obj)) } catch (e) { } }
+
+      async function tryAdminLogin(empId, pw) {
+        // Preferred: use HRDAuth if available
+        if (window.HRDAuth && typeof HRDAuth.adminLogin === 'function') {
+          try {
+            const res = await HRDAuth.adminLogin(empId, pw)
+            return { ok: true, res }
+          } catch (e) {
+            return null
+          }
+        }
+        // Fallback: attempt a POST to the auth API endpoint
+        try {
+          const r = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ empId, password: pw })
+          })
+          if (r.ok) {
+            const res = await r.json()
+            if (res.token || res.accessToken) {
+              localStorage.setItem('authToken', res.token || res.accessToken)
+            }
+            localStorage.setItem('loggedInTeacher', JSON.stringify({
+              empId: res.user?.empId || empId,
+              name: res.user?.name || res.user?.fullName || empId,
+              role: res.user?.role || 'admin',
+              dept: res.user?.dept
+            }))
+            return { ok: true, res }
+          }
+        } catch (e) {
+          // no backend reachable
+        }
+        return null
+      }
+
+      function tryLocalLogin(empId, pw) {
+        const users = loadUsers()
+        return users.find(u =>
+          (typeof u.empId === 'string' && u.empId.toLowerCase() === empId.toLowerCase()) &&
+          u.dob === pw
+        ) || null
+      }
+
+      document.getElementById('loginBtn').addEventListener('click', async () => {
+        errEl.style.display = 'none'
+        const empId = document.getElementById('id').value.trim()
+        const pw = document.getElementById('pw').value.trim()
+        if (!empId || !pw) { errEl.textContent = 'Enter both fields'; errEl.style.display = 'block'; return }
+
+        // 1) Admin check (backend)
+        const admin = await tryAdminLogin(empId, pw)
+        if (admin && admin.ok) {
+          window.location.href = '/hrd/schedule-admin.html'
+          return
+        }
+
+        // 2) Local teacher/hod check
+        const user = tryLocalLogin(empId, pw)
+        if (user) {
+          saveSession({ empId: user.empId, name: user.fullName, role: user.role, dept: user.dept })
+          if (user.role === 'teacher') window.location.href = '/teachers/dashboard.html'
+          else if (user.role === 'hod') window.location.href = '/hod/dashboard.html'
+          else window.location.href = '/teachers/dashboard.html' // Fallback roleturn
+        }
+
+        // none matched
+        errEl.textContent = 'Invalid credentials'
+        errEl.style.display = 'block'
+      })
+    })()
+  </script>
+</body>
+
+</html>

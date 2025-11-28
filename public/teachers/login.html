@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Login — SNPSU HRD</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #fff;
+      --accent: #0b63d6;
+      --muted: #6b7280;
+      --danger: #ef4444
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: Inter, system-ui, Segoe UI, Roboto, Arial
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px
+    }
+
+    .box {
+      width: 100%;
+      max-width: 460px;
+      background: var(--card);
+      border-radius: 12px;
+      padding: 22px;
+      box-shadow: 0 12px 36px rgba(11, 99, 214, 0.06)
+    }
+
+    .brand {
+      font-weight: 800;
+      color: var(--accent);
+      font-size: 18px;
+      margin-bottom: 6px
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 16px
+    }
+
+    .input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #e6eefb;
+      margin-bottom: 12px;
+      font-size: 14px;
+      background: #fff
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      align-items: center
+    }
+
+    .btn {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 0;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer
+    }
+
+    .ghost {
+      background: #fff;
+      border: 1px solid #e6eefb;
+      color: var(--accent)
+    }
+
+    .link {
+      display: block;
+      text-align: center;
+      margin-top: 12px;
+      color: var(--muted);
+      cursor: pointer
+    }
+
+    .err {
+      color: var(--danger);
+      font-size: 13px;
+      margin-top: 8px;
+      text-align: center
+    }
+  </style>
+</head>
+
+<body>
+  <div class="box">
+    <div class="brand">SNPSU · HRD</div>
+    <div class="hint">Login with Employee ID and DOB (DDMMYYYY). Use the date picker to fill DOB if you don't want to
+      type it.</div>
+
+    <input id="empId" class="input" placeholder="Employee ID (eg. T101)" />
+    <input id="dob" class="input" placeholder="DOB (DDMMYYYY) or pick date" />
+
+    <div class="row" style="margin-bottom:12px">
+      <input id="dobDate" type="date" class="input" style="flex:1" />
+      <button id="fillBtn" class="btn" style="flex:0 0 120px">Fill DOB</button>
+    </div>
+
+    <button id="loginBtn" class="btn" style="width:100%">Login</button>
+    <div id="error" class="err"></div>
+
+    <div class="link" id="goSignup">Create an account</div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      function toDDMMYYYY(dateStr) {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return '';
+        const dd = String(d.getDate()).padStart(2, '0');
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const yyyy = d.getFullYear();
+        return dd + mm + yyyy;
+      }
+      function loadUsers() { try { return JSON.parse(localStorage.getItem('teachers') || '[]') } catch (e) { return [] } }
+
+      function redirectByRole(role) {
+        if (!role) location.href = '../teachers/dashboard.html'
+        else if (role.toLowerCase() === 'teacher') location.href = '../teachers/dashboard.html'
+        else if (role.toLowerCase() === 'hod') location.href = '../hrd/syllabus-view.html'
+        else if (role.toLowerCase() === 'admin') location.href = '../hrd/schedule-admin.html'
+        else location.href = '../teachers/dashboard.html'
+      }
+
+      document.getElementById('goSignup').addEventListener('click', () => location.href = '../signup.html')
+      document.getElementById('fillBtn').addEventListener('click', e => {
+        e.preventDefault();
+        const v = document.getElementById('dobDate').value;
+        if (!v) return;
+        document.getElementById('dob').value = toDDMMYYYY(v);
+      })
+
+      document.getElementById('loginBtn').addEventListener('click', async () => {
+        const empId = (document.getElementById('empId').value || '').trim();
+        const dobInput = (document.getElementById('dob').value || '').trim();
+        const error = document.getElementById('error');
+        error.textContent = '';
+
+        if (!empId || !dobInput) { error.textContent = 'Employee ID and DOB required'; return }
+
+        // Try backend login first (for Admin/HOD who need token)
+        try {
+          const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ empId, password: dobInput })
+          })
+          if (res.ok) {
+            const data = await res.json()
+            if (data.token) {
+              localStorage.setItem('hrd_token', data.token)
+              localStorage.setItem('loggedInTeacher', JSON.stringify(data.user))
+              redirectByRole(data.user.role)
+              return
+            }
+          }
+        } catch (e) {
+          console.log('Backend login failed, trying local', e)
+        }
+
+        // Fallback to local storage (for offline/demo teachers)
+        const users = loadUsers();
+        const user = users.find(t => t.empId && t.empId.toLowerCase() === empId.toLowerCase());
+        if (!user) { error.textContent = 'No account with that Employee ID'; return }
+
+        if (user.dob !== dobInput) { error.textContent = 'Wrong DOB'; return }
+
+        localStorage.setItem('loggedInTeacher', JSON.stringify({ empId: user.empId, name: user.fullName, role: user.role, dept: user.dept }))
+        redirectByRole(user.role)
+      })
+
+      document.getElementById('empId').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('loginBtn').click(); })
+      document.getElementById('dob').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('loginBtn').click(); })
+    })
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Initial Setup — SNPSU HRD</title>
+<style>
+:root{--bg:#f6fbff;--card:#fff;--accent:#0b63d6;--muted:#6b7280}
+*{box-sizing:border-box;font-family:Inter,system-ui,Segoe UI,Roboto,Arial}
+body{margin:0;min-height:100vh;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px}
+.box{width:100%;max-width:520px;background:var(--card);border-radius:12px;padding:20px;box-shadow:0 12px 40px rgba(11,99,214,0.06)}
+.h{font-weight:800;color:var(--accent);font-size:18px;margin-bottom:6px}
+.note{color:var(--muted);font-size:13px;margin-bottom:12px}
+.input,select{width:100%;padding:10px;border-radius:8px;border:1px solid #e6eefb;margin-bottom:10px;background:#fff}
+.btn{padding:10px;border-radius:8px;border:0;background:var(--accent);color:#fff;font-weight:700;cursor:pointer}
+.err{color:#ef4444;margin-top:8px}
+.success{color:#059669;margin-top:8px}
+.link{margin-top:12px;color:var(--accent);cursor:pointer;text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="box" id="box">
+  <div class="h">Initial Admin / HOD Setup</div>
+  <div class="note">If this is the first time you run the app, create an Admin/HOD account now. If an admin already exists you will be redirected to login.</div>
+
+  <div id="already" style="display:none">
+    <div class="note">Admin/HOD already present. Redirecting...</div>
+    <div class="link" id="gotoLogin">Go to login</div>
+  </div>
+
+  <form id="setupForm">
+    <label class="small">Role</label>
+    <select id="role" class="input">
+      <option value="hod">HOD</option>
+      <option value="admin">Admin</option>
+    </select>
+
+    <input id="empId" class="input" placeholder="Employee ID (eg. HOD01)" required />
+    <input id="fullName" class="input" placeholder="Full name" required />
+    <input id="email" class="input" placeholder="Email (optional)" />
+    <input id="dept" class="input" placeholder="Department (eg. CSE) (optional)" />
+    <label class="small">Date of birth (will be used as password - DDMMYYYY)</label>
+    <input id="dob" type="date" class="input" required />
+    <button class="btn" type="submit">Create account</button>
+    <div id="error" class="err"></div>
+    <div id="success" class="success"></div>
+  </form>
+</div>
+
+<script>
+(function(){
+  function toDDMMYYYY(dateStr){
+    if(!dateStr) return '';
+    const d = new Date(dateStr);
+    if(isNaN(d.getTime())) return '';
+    const dd = String(d.getDate()).padStart(2,'0');
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    const yyyy = d.getFullYear();
+    return dd + mm + yyyy;
+  }
+  function safeParse(k, fallback){
+    try{ const v = JSON.parse(localStorage.getItem(k)||'null'); return v===null?fallback:v }catch(e){ return fallback }
+  }
+  function saveUsers(arr){ localStorage.setItem('teachers', JSON.stringify(arr)) }
+
+  const users = safeParse('teachers', [])
+  const hasAdmin = (users||[]).some(u => (u.role||'').toLowerCase() === 'admin' || (u.role||'').toLowerCase() === 'hod')
+
+  const form = document.getElementById('setupForm')
+  const already = document.getElementById('already')
+  const box = document.getElementById('box')
+  const err = document.getElementById('error')
+  const success = document.getElementById('success')
+
+  function redirectToLogin(){ window.location.href = '../teachers/login.html' }
+
+  if(hasAdmin){
+    // hide form, show message, link to login
+    form.style.display = 'none'
+    already.style.display = 'block'
+    document.getElementById('gotoLogin').addEventListener('click', redirectToLogin)
+    // auto-redirect after a second
+    setTimeout(redirectToLogin, 800)
+    return
+  }
+
+  form.addEventListener('submit', e => {
+    e.preventDefault()
+    err.textContent = ''; success.textContent = ''
+
+    const empId = (document.getElementById('empId').value || '').trim()
+    const fullName = (document.getElementById('fullName').value || '').trim()
+    const email = (document.getElementById('email').value || '').trim()
+    const dept = (document.getElementById('dept').value || '').trim()
+    const role = (document.getElementById('role').value || 'admin').trim()
+    const dobRaw = document.getElementById('dob').value || ''
+
+    if(!empId || !fullName || !dobRaw){
+      err.textContent = 'Employee ID, name and DOB required'
+      return
+    }
+    const dob = toDDMMYYYY(dobRaw)
+    if(dob.length !== 8){ err.textContent = 'Invalid DOB'; return }
+
+    const list = safeParse('teachers', [])
+    if(list.find(u => (u.empId||'').toLowerCase() === empId.toLowerCase())){
+      err.textContent = 'Employee ID already exists'
+      return
+    }
+
+    const rec = { empId, fullName, email, dept, role, dob, createdAt: new Date().toISOString() }
+    list.push(rec)
+    saveUsers(list)
+
+    // set logged in and redirect to appropriate admin/hod page
+    localStorage.setItem('loggedInTeacher', JSON.stringify({ empId: rec.empId, name: rec.fullName, role: rec.role, dept: rec.dept }))
+    success.textContent = 'Account created. Redirecting...'
+    setTimeout(()=>{
+      if(rec.role.toLowerCase() === 'admin') window.location.href = '../hrd/schedule-admin.html'
+      else if(rec.role.toLowerCase() === 'hod') window.location.href = '../hrd/syllabus-view.html'
+      else window.location.href = '../teachers/dashboard.html'
+    }, 800)
+  })
+})();
+</script>
+</body>
+</html>

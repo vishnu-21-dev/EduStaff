@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HRD — Teachers</title>
+
+  <script src="/assets/js/auth-client.js"></script>
+
+  <style>
+    :root {
+      --bg: #0f1724;
+      --card: #0b1220;
+      --muted: #9aa4b2;
+      --accent: #06b6d4
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: Inter, system-ui, Segoe UI, Roboto, Arial
+    }
+
+    body {
+      margin: 0;
+      background: linear-gradient(180deg, #071022 0%, var(--bg) 100%);
+      color: #e6eef6
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      min-height: 100vh
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, #031426 0%, #071428 100%);
+      padding: 20px;
+      border-right: 1px solid rgba(255, 255, 255, 0.03)
+    }
+
+    .brand {
+      font-weight: 700;
+      font-size: 18px;
+      margin-bottom: 18px
+    }
+
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 8px
+    }
+
+    .nav a {
+      color: var(--muted);
+      text-decoration: none;
+      padding: 10px;
+      border-radius: 8px
+    }
+
+    .nav a.active {
+      background: rgba(255, 255, 255, 0.03);
+      color: #fff
+    }
+
+    .main {
+      padding: 24px
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px
+    }
+
+    .search {
+      background: var(--card);
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.02)
+    }
+
+    .card {
+      background: var(--card);
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.02)
+    }
+
+    .table {
+      margin-top: 18px
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse
+    }
+
+    th,
+    td {
+      padding: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 14px
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 600;
+      text-align: left
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px
+    }
+
+    .ghost {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      padding: 8px 10px;
+      border-radius: 8px;
+      color: var(--muted);
+      cursor: pointer
+    }
+
+    .btn {
+      background: linear-gradient(90deg, var(--accent), #3b82f6);
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: none;
+      color: #021;
+      cursor: pointer
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 500
+    }
+
+    .modal {
+      background: var(--card);
+      padding: 20px;
+      border-radius: 12px;
+      width: 520px;
+      max-width: 95%
+    }
+
+    .pill {
+      padding: 6px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 13px;
+      margin-right: 6px
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    .progress-bar {
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.04);
+      overflow: hidden
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), #3b82f6)
+    }
+
+    .empty {
+      padding: 28px;
+      text-align: center;
+      color: var(--muted)
+    }
+
+    @media (max-width:900px) {
+      .layout {
+        grid-template-columns: 1fr
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">HRD Admin</div>
+      <nav class="nav">
+        <a href="/hrd/schedule-admin.html">Dashboard</a>
+        <a href="/hrd/hod-list.html">HODs</a>
+        <a class="active" href="/hrd/teacher-list.html">Teachers</a>
+        <a href="/login.html">Logout</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div style="display:flex;gap:12px;align-items:center">
+          <div class="search">Search teachers, depts, or courses...</div>
+        </div>
+        <div style="color:var(--muted);font-size:13px">Logged in as Admin</div>
+      </div>
+
+      <div class="card table" id="cardTable">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <h3 style="margin:0;font-size:16px">Teacher Directory</h3>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input id="filter" placeholder="Filter name / dept"
+              style="padding:8px 10px;background:transparent;border:1px solid rgba(255,255,255,0.05);border-radius:8px;color:#fff">
+            <button id="export" class="btn">Export CSV</button>
+          </div>
+        </div>
+
+        <table style="margin-top:14px" id="teacherTable">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Dept</th>
+              <th>Progress</th>
+              <th>Last Update</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="body"></tbody>
+        </table>
+
+        <div id="emptyState" class="empty" style="display:none">No teachers found. If this is unexpected, check your
+          backend or login status.</div>
+      </div>
+
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal" id="modalContent"></div>
+  </div>
+
+  <script>
+    const bodyEl = document.getElementById('body')
+    const filterEl = document.getElementById('filter')
+    const exportBtn = document.getElementById('export')
+    const modalBackdrop = document.getElementById('modalBackdrop')
+    const modalContent = document.getElementById('modalContent')
+    const emptyState = document.getElementById('emptyState')
+    const teacherTable = document.getElementById('teacherTable')
+
+    let teachers = []
+
+    // API Helper
+    async function api(path, opts = {}) {
+      const token = localStorage.getItem('hrd_token')
+      if (!token) {
+        window.location.href = '/login.html'
+        return
+      }
+      const headers = opts.headers || {}
+      headers['Authorization'] = 'Bearer ' + token
+      opts.headers = headers
+      const res = await fetch(path, opts)
+      if (res.status === 401 || res.status === 403) {
+        localStorage.removeItem('hrd_token')
+        window.location.href = '/login.html'
+        return
+      }
+      const txt = await res.text()
+      try { return JSON.parse(txt) } catch (e) { return txt }
+    }
+
+    function pctHtml(p) {
+      return `<div style="width:160px"><div class="muted" style="font-size:12px;margin-bottom:6px">${p}%</div><div class="progress-bar"><div class="progress-fill" style="width:${Math.max(0, Math.min(100, p))}%;"></div></div></div>`
+    }
+
+    function render(list) {
+      bodyEl.innerHTML = ''
+      if (!Array.isArray(list) || list.length === 0) {
+        teacherTable.style.display = 'none'
+        emptyState.style.display = 'block'
+        return
+      }
+      teacherTable.style.display = ''
+      emptyState.style.display = 'none'
+      list.forEach(t => {
+        const tr = document.createElement('tr')
+        tr.innerHTML = `
+          <td>${t.name}</td>
+          <td>${t.dept}</td>
+          <td>${pctHtml(t.pct)}</td>
+          <td>${t.updated}</td>
+          <td class="actions">
+            <button class="ghost view" data-id="${t.id}">Profile</button>
+            <button class="ghost flag" data-id="${t.id}">Flag</button>
+          </td>`
+        bodyEl.appendChild(tr)
+      })
+    }
+
+    function openModal(html) {
+      modalContent.innerHTML = html
+      modalBackdrop.style.display = 'flex'
+    }
+    function closeModal() {
+      modalBackdrop.style.display = 'none'
+      modalContent.innerHTML = ''
+    }
+
+    async function loadTeachers() {
+      // must use backend data only
+      try {
+        const data = await api('/api/teachers')
+        if (!Array.isArray(data)) {
+          throw new Error('invalid response')
+        }
+        teachers = data
+      } catch (e) {
+        // clear UI and show explicit error
+        teachers = []
+        teacherTable.style.display = 'none'
+        emptyState.style.display = 'block'
+        emptyState.textContent = 'Could not load teachers from server. Make sure you are logged in and the backend is running.'
+        return
+      }
+      render(teachers)
+    }
+
+    document.addEventListener('click', async (e) => {
+      if (e.target.id === 'modalBackdrop') closeModal()
+
+      const v = e.target.closest('.view')
+      if (v) {
+        const id = Number(v.dataset.id)
+        let t
+        try {
+          t = await api(`/api/teachers/${id}`)
+          if (!t) throw new Error('no teacher')
+        } catch (err) {
+          t = teachers.find(x => x.id === id)
+          if (!t) { alert('Could not load teacher'); return }
+        }
+        openModal(`
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <h3>${t.name}</h3><button class="ghost" id="closeModal">Close</button>
+          </div>
+          <div style="margin-top:12px">
+            <div class="muted">Department</div><div style="font-weight:700;margin-bottom:8px">${t.dept}</div>
+            <div class="muted">Syllabus Completion</div><div style="font-weight:700;margin-bottom:8px">${t.pct}%</div>
+            <div class="muted">Last Update</div><div style="font-weight:700;margin-bottom:8px">${t.updated}</div>
+            <div class="muted" style="margin-top:8px">Courses</div>
+            <div style="margin-top:8px">${(t.courses || []).map(c => `<span class="pill">${c}</span>`).join(' ')}</div>
+          </div>
+        `)
+        return
+      }
+
+      const f = e.target.closest('.flag')
+      if (f) {
+        const id = Number(f.dataset.id)
+        alert('Flagged user id ' + id + ' — implement server-side action')
+        return
+      }
+
+      if (e.target.id === 'closeModal') closeModal()
+    })
+
+    filterEl.addEventListener('input', () => {
+      const q = filterEl.value.toLowerCase()
+      const filtered = teachers.filter(t => (t.name || '').toLowerCase().includes(q) || (t.dept || '').toLowerCase().includes(q) || (t.courses || []).join(' ').toLowerCase().includes(q))
+      render(filtered)
+    })
+
+    exportBtn.addEventListener('click', () => {
+      if (!teachers || teachers.length === 0) { alert('No teacher data to export'); return }
+      const rows = [['Name', 'Dept', 'Syllabus %', 'Last Update'], ...teachers.map(t => [t.name, t.dept, t.pct, t.updated])]
+      const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n')
+      const blob = new Blob([csv], { type: 'text/csv' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'teachers.csv'
+      a.click()
+      URL.revokeObjectURL(url)
+    })
+
+    modalBackdrop.addEventListener('click', (e) => {
+      if (e.target.id === 'modalBackdrop') closeModal()
+    })
+
+    loadTeachers()
+  </script>
+
+</body>
+
+</html>

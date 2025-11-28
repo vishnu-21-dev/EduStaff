@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HRD — Admin Dashboard</title>
+  <script src="/assets/js/auth-client.js"></script>
+  <style>
+    :root {
+      --bg: #0f1724;
+      --card: #0b1220;
+      --muted: #9aa4b2;
+      --accent: #06b6d4
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: Inter, ui-sans-serif, system-ui, Segoe UI, Roboto, 'Helvetica Neue', Arial
+    }
+
+    body {
+      margin: 0;
+      background: linear-gradient(180deg, #071022 0%, var(--bg) 100%);
+      color: #e6eef6
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      min-height: 100vh
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, #031426 0%, #071428 100%);
+      padding: 20px;
+      border-right: 1px solid rgba(255, 255, 255, 0.03)
+    }
+
+    .brand {
+      font-weight: 700;
+      font-size: 18px;
+      margin-bottom: 18px
+    }
+
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 8px
+    }
+
+    .nav a {
+      color: var(--muted);
+      text-decoration: none;
+      padding: 10px;
+      border-radius: 8px;
+      display: block
+    }
+
+    .nav a.active {
+      background: rgba(255, 255, 255, 0.03);
+      color: #fff
+    }
+
+    .main {
+      padding: 24px
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px
+    }
+
+    .search {
+      background: var(--card);
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.02)
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 20px
+    }
+
+    .card {
+      background: var(--card);
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.02)
+    }
+
+    .card h3 {
+      margin: 0 0 8px 0;
+      font-size: 14px;
+      color: var(--muted)
+    }
+
+    .card p {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 700
+    }
+
+    .table {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 12px
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse
+    }
+
+    th,
+    td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      font-size: 14px
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 600
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px
+    }
+
+    .btn {
+      background: linear-gradient(90deg, var(--accent), #3b82f6);
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: none;
+      color: #021;
+      cursor: pointer
+    }
+
+    .ghost {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      padding: 8px 10px;
+      border-radius: 8px;
+      color: var(--muted);
+      cursor: pointer
+    }
+
+    .upload {
+      display: flex;
+      gap: 10px;
+      align-items: center
+    }
+
+    .kpi {
+      display: flex;
+      gap: 10px;
+      align-items: center
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 14px
+    }
+
+    .schedule-list {
+      max-height: 360px;
+      overflow: auto;
+      margin-top: 12px
+    }
+
+    .sched-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.02);
+      margin-bottom: 8px
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 60
+    }
+
+    .modal {
+      background: var(--card);
+      padding: 18px;
+      border-radius: 12px;
+      width: 520px;
+      max-width: 95%
+    }
+
+    label {
+      display: block;
+      margin-top: 8px;
+      font-size: 13px;
+      color: var(--muted)
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      background: transparent;
+      color: inherit
+    }
+
+    .row {
+      display: flex;
+      gap: 8px
+    }
+
+    .small {
+      width: 120px
+    }
+
+    .pill {
+      padding: 6px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      font-size: 13px
+    }
+
+    @media (max-width:900px) {
+      .layout {
+        grid-template-columns: 1fr
+      }
+
+      .grid {
+        grid-template-columns: 1fr
+      }
+
+      .split {
+        grid-template-columns: 1fr
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">HRD Admin</div>
+      <nav class="nav">
+        <a class="active" href="#dashboard">Dashboard</a>
+        <a href="/hrd/teacher-list.html">Teachers</a>
+        <a href="/hrd/hod-list.html">HODs</a>
+        <a href="/hrd/syllabus-master.html">Syllabus Master</a>
+        <a href="/hrd/create-user.html">Create User</a>
+        <a href="/login.html">Logout</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div style="display:flex;gap:12px;align-items:center">
+          <div class="search">Search teachers, HODs, files...</div>
+          <div class="kpi">
+            <div style="font-size:13px;color:var(--muted)">Logged as Admin</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <button class="ghost" id="syncLocalUsers">Sync Local Users</button>
+          <button class="ghost" id="bulkSync">Sync All Progress</button>
+          <button class="btn" id="createUser">Create User</button>
+        </div>
+      </div>
+
+      <section class="grid" id="cards">
+        <div class="card">
+          <h3>Total Teachers</h3>
+          <p id="totalTeachers">0</p>
+        </div>
+        <div class="card">
+          <h3>Completed Syllabus</h3>
+          <p id="completedCount">0</p>
+        </div>
+        <div class="card">
+          <h3>Pending Actions</h3>
+          <p id="pendingCount">0</p>
+        </div>
+      </section>
+
+      <section class="card table" style="margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <strong>Teacher Progress</strong>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input id="filterInput" placeholder="Filter by name or dept"
+              style="padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit" />
+            <button class="btn" id="exportCsv">Export CSV</button>
+          </div>
+        </div>
+        <div style="overflow:auto;max-height:380px">
+          <table id="progressTable">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Dept</th>
+                <th>Syllabus %</th>
+                <th>Last Update</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <div class="split">
+        <div class="card">
+          <strong>Schedule Manager</strong>
+          <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+            <button class="btn" id="newSchedule">Add Schedule</button>
+            <div class="muted">Assign classes, dates, and teachers. Admin can edit any schedule.</div>
+          </div>
+
+          <div class="schedule-list" id="scheduleList"></div>
+        </div>
+
+        <div class="card">
+          <strong>Syllabus Master</strong>
+          <div style="margin-top:12px">
+            <div class="upload">
+              <input type="file" id="syllabusUpload" />
+              <div style="display:flex;flex-direction:column">
+                <div style="font-size:13px;color:var(--muted)">Upload official syllabus (PDF)</div>
+                <div style="font-size:12px;color:var(--muted)">Files will be stored in your configured storage service
+                </div>
+              </div>
+            </div>
+            <div style="margin-top:12px;display:flex;gap:8px">
+              <button class="btn" id="uploadBtn">Upload</button>
+              <button class="ghost" id="viewSyllabus">View Existing</button>
+            </div>
+
+
+          </div>
+        </div>
+
+        <div class="card" style="grid-column: 1 / -1; margin-top:8px">
+          <strong>Extracurricular Activities Manager</strong>
+          <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+            <select id="teacherSelectExtracurricular" style="flex:1">
+              <option value="">Select a teacher...</option>
+            </select>
+            <button class="btn" id="manageExtracurricular">Manage Activities</button>
+          </div>
+          <div class="schedule-list" id="extracurricularAdminList"></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal" id="modalContent"></div>
+  </div>
+
+  <script>
+    async function apiRequest(path, opts = {}) {
+      const token = localStorage.getItem('hrd_token')
+      if (!token) {
+        window.location.href = '/login.html'
+        return
+      }
+      const headers = opts.headers || {}
+      headers['Authorization'] = 'Bearer ' + token
+      opts.headers = headers
+      const res = await fetch(path, opts)
+      if (res.status === 401 || res.status === 403) {
+        localStorage.removeItem('hrd_token')
+        window.location.href = '/login.html'
+        return
+      }
+      const txt = await res.text()
+      try { return JSON.parse(txt) } catch (e) { return txt }
+    }
+
+    const API = {
+      listTeachers: () => apiRequest('/api/teachers'),
+      getTeacher: id => apiRequest(`/api/teachers/${id}`),
+      listSchedules: () => apiRequest('/api/schedules'),
+      createSchedule: payload => apiRequest('/api/schedules', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }),
+      updateSchedule: (id, payload) => apiRequest(`/api/schedules/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }),
+      deleteSchedule: id => apiRequest(`/api/schedules/${id}`, { method: 'DELETE' }),
+      getExtracurricular: (teacherId) => apiRequest(`/api/teachers/${teacherId}/extracurricular`),
+      updateExtracurricular: (teacherId, activities) => apiRequest(`/api/teachers/${teacherId}/extracurricular`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ activities }) })
+    }
+
+    let sampleTeachers = []
+    let schedules = []
+
+    const tbody = document.querySelector('#progressTable tbody')
+    const totalTeachersEl = document.getElementById('totalTeachers')
+    const completedEl = document.getElementById('completedCount')
+    const pendingEl = document.getElementById('pendingCount')
+    const scheduleListEl = document.getElementById('scheduleList')
+    const modalBackdrop = document.getElementById('modalBackdrop')
+    const modalContent = document.getElementById('modalContent')
+
+    function buildRow(t) {
+      const tr = document.createElement('tr')
+      tr.innerHTML = `<td>${t.name}</td><td>${t.dept}</td><td>${t.pct}%</td><td>${t.updated}</td><td class="actions"><button class="ghost viewProfile" data-id="${t.id}">Profile</button><button class="ghost" data-action="flag" data-id="${t.id}">Flag</button></td>`
+      return tr
+    }
+
+    function renderTeachers(list) {
+      tbody.innerHTML = ''
+      list.forEach(t => tbody.appendChild(buildRow(t)))
+      totalTeachersEl.textContent = list.length
+      completedEl.textContent = list.filter(x => x.pct >= 100).length
+      pendingEl.textContent = list.filter(x => x.pct < 100).length
+    }
+
+    function renderSchedules() {
+      scheduleListEl.innerHTML = ''
+      if (schedules.length === 0) { scheduleListEl.innerHTML = '<div class="muted">No schedules yet</div>'; return }
+      schedules.forEach(s => {
+        const teacher = sampleTeachers.find(x => x.id === s.teacherId) || { name: '—' }
+        const div = document.createElement('div')
+        div.className = 'sched-row'
+        div.innerHTML = `<div><div style="font-weight:700">${s.course} · ${s.date} · ${s.time}</div><div class="muted">${teacher.name} · ${s.room}</div></div>
+        <div class="actions"><button class="ghost editSchedule" data-id="${s.id}">Edit</button><button class="ghost delSchedule" data-id="${s.id}">Delete</button></div>`
+        scheduleListEl.appendChild(div)
+      })
+    }
+
+    function openModal(html) { modalContent.innerHTML = html; modalBackdrop.style.display = 'flex' }
+    function closeModal() { modalBackdrop.style.display = 'none'; modalContent.innerHTML = '' }
+
+    document.addEventListener('click', async e => {
+      if (e.target.id === 'modalBackdrop') closeModal()
+      const vp = e.target.closest('.viewProfile')
+      if (vp) {
+        const id = Number(vp.dataset.id)
+        try {
+          const t = await API.getTeacher(id)
+          openModal(`<div><div style="display:flex;justify-content:space-between;align-items:center"><h3>${t.name}</h3><button class="ghost" id="closeModal">Close</button></div><div style="margin-top:8px"><div class="muted">Department</div><div style="font-weight:700">${t.dept}</div></div><div style="margin-top:8px"><div class="muted">Syllabus Completion</div><div style="font-weight:700">${t.pct}%</div></div><div style="margin-top:8px"><div class="muted">Last Update</div><div style="font-weight:700">${t.updated}</div></div><div style="margin-top:8px"><div class="muted">Courses</div><div>${(t.courses || []).map(c => `<span class="pill">${c}</span>`).join(' ')}</div></div></div>`)
+        } catch (err) { alert('Could not fetch teacher') }
+        return
+      }
+      const es = e.target.closest('.editSchedule')
+      if (es) {
+        const id = Number(es.dataset.id)
+        const s = schedules.find(x => x.id === id)
+        openModal(scheduleFormHtml(s))
+        return
+      }
+      const ds = e.target.closest('.delSchedule')
+      if (ds) {
+        const id = Number(ds.dataset.id)
+        if (!confirm('Delete this schedule?')) return
+        try {
+          await API.deleteSchedule(id)
+          schedules = schedules.filter(x => x.id !== id)
+          renderSchedules()
+        } catch (err) { alert('Delete failed') }
+        return
+      }
+      if (e.target.id === 'newSchedule') { openModal(scheduleFormHtml()); return }
+      if (e.target.id === 'closeModal') closeModal()
+    })
+
+    function scheduleFormHtml(existing) {
+      const teachersOptions = sampleTeachers.map(t => `<option value="${t.id}" ${existing && existing.teacherId === t.id ? 'selected' : ''}>${t.name} — ${t.dept}</option>`).join('')
+      return `<div><div style="display:flex;justify-content:space-between;align-items:center"><h3>${existing ? 'Edit Schedule' : 'New Schedule'}</h3><button class="ghost" id="closeModal">Close</button></div><label>Teacher</label><select id="schedTeacher">${teachersOptions}</select><label>Course</label><input id="schedCourse" value="${existing ? existing.course : ''}" /><div class="row"><div style="flex:1"><label>Date</label><input id="schedDate" type="date" value="${existing ? existing.date : ''}" /></div><div style="width:140px"><label>Time</label><input id="schedTime" value="${existing ? existing.time : ''}" placeholder="09:00-10:00" /></div></div><label>Room</label><input id="schedRoom" value="${existing ? existing.room : ''}" /><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button class="ghost" id="cancelSched">Cancel</button><button class="btn" id="saveSched" data-id="${existing ? existing.id : ''}">Save</button></div></div>`
+    }
+
+    modalBackdrop.addEventListener('click', e => {
+      const t = e.target
+      if (t.id === 'cancelSched' || t.id === 'modalBackdrop') closeModal()
+    })
+
+    modalContent.addEventListener('click', async e => {
+      if (e.target.id === 'saveSched') {
+        const id = e.target.dataset.id ? Number(e.target.dataset.id) : null
+        const teacherId = Number(document.getElementById('schedTeacher').value)
+        const course = document.getElementById('schedCourse').value.trim()
+        const date = document.getElementById('schedDate').value
+        const time = document.getElementById('schedTime').value.trim()
+        const room = document.getElementById('schedRoom').value.trim()
+        if (!teacherId || !course || !date || !time) { alert('fill teacher/course/date/time'); return }
+        try {
+          if (id) {
+            const updated = await API.updateSchedule(id, { teacherId, course, date, time, room })
+            const idx = schedules.findIndex(x => x.id === id)
+            schedules[idx] = updated
+          } else {
+            const created = await API.createSchedule({ teacherId, course, date, time, room })
+            schedules.push(created)
+          }
+          renderSchedules()
+          closeModal()
+        } catch (err) { alert('Save failed') }
+      }
+    })
+
+    document.getElementById('filterInput').addEventListener('input', e => {
+      const q = e.target.value.toLowerCase()
+      renderTeachers(sampleTeachers.filter(t => t.name.toLowerCase().includes(q) || t.dept.toLowerCase().includes(q)))
+    })
+
+    document.getElementById('exportCsv').addEventListener('click', async () => {
+      if (!sampleTeachers || sampleTeachers.length === 0) { alert('No teacher data to export'); return }
+      const rows = [['Name', 'Dept', 'Syllabus %', 'Last Update'], ...sampleTeachers.map(t => [t.name, t.dept, t.pct, t.updated])]
+      const csv = rows.map(r => r.map(c => `\"${String(c).replace(/\"/g, '\"\"')}\"`).join(',')).join('\n')
+      const blob = new Blob([csv], { type: 'text/csv' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'teacher_progress.csv'
+      a.click()
+      URL.revokeObjectURL(url)
+    })
+
+    document.getElementById('uploadBtn').addEventListener('click', async () => {
+      const f = document.getElementById('syllabusUpload').files[0]
+      if (!f) return alert('Select a file first')
+      const fd = new FormData()
+      fd.append('file', f)
+      try {
+        const token = localStorage.getItem('hrd_token')
+        const res = await fetch('/api/syllabus', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token }, body: fd })
+        const data = await res.json()
+        if (!res.ok) { alert(data.error || 'upload failed'); return }
+        alert('Uploaded')
+      } catch (e) {
+        alert('Integrate with your storage API')
+      }
+    })
+
+    document.getElementById('syncLocalUsers').addEventListener('click', async () => {
+      const localUsers = localStorage.getItem('teachers')
+      if (!localUsers) {
+        alert('No local users found to sync')
+        return
+      }
+
+      let users = []
+      try {
+        users = JSON.parse(localUsers)
+        if (!Array.isArray(users) || users.length === 0) {
+          alert('No valid users found in local storage')
+          return
+        }
+      } catch (e) {
+        alert('Failed to parse local users')
+        return
+      }
+
+      if (!confirm(`Found ${users.length} user(s) in local storage. Sync to backend?`)) return
+
+      let synced = 0, failed = 0, skipped = 0
+      for (const user of users) {
+        try {
+          const res = await fetch('/api/teachers', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + localStorage.getItem('hrd_token')
+            },
+            body: JSON.stringify(user)
+          })
+          const data = await res.json()
+          if (res.ok) {
+            synced++
+          } else if (res.status === 409) {
+            skipped++ // already exists
+          } else {
+            failed++
+            console.error('Sync failed for', user.empId, data.error)
+          }
+        } catch (e) {
+          failed++
+          console.error('Network error for', user.empId, e)
+        }
+      }
+
+      alert(`Sync complete!\nSynced: ${synced}\nSkipped (already exist): ${skipped}\nFailed: ${failed}`)
+
+      // Reload teachers list
+      init()
+    })
+
+    document.getElementById('bulkSync').addEventListener('click', () => alert('Triggering sync... connect to backend API'))
+    document.getElementById('createUser').addEventListener('click', () => location.href = '/hrd/create-user.html')
+
+    // ========== Extracurricular Activities Management ==========
+    let currentTeacherForExtracurricular = null
+
+    async function loadTeacherExtracurricular(teacherId) {
+      try {
+        const data = await API.getExtracurricular(teacherId)
+        return data.activities || []
+      } catch (e) {
+        console.error('Could not load extracurricular for teacher', teacherId)
+        return []
+      }
+    }
+
+    async function renderTeacherExtracurricular(teacherId) {
+      const list = document.getElementById('extracurricularAdminList')
+      const activities = await loadTeacherExtracurricular(teacherId)
+      if (activities.length === 0) {
+        list.innerHTML = '<div class="muted">No extracurricular activities for this teacher</div>'
+        return
+      }
+      list.innerHTML = activities.map((a, idx) => `
+        <div class="sched-row">
+          <div>
+            <div style="font-weight:700">${a.title || a}</div>
+            <div class="muted">${a.date || ''} ${a.type ? '· ' + a.type : ''}</div>
+          </div>
+          <div class="actions">
+            <button class="ghost editExtracurricular" data-index="${idx}">Edit</button>
+            <button class="ghost deleteExtracurricular" data-index="${idx}">Delete</button>
+          </div>
+        </div>`).join('')
+    }
+
+    function extracurricularFormHtml(existing, index) {
+      return `
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <h3>${existing ? 'Edit Activity' : 'New Activity'}</h3>
+            <button class="ghost" id="closeModal">Close</button>
+          </div>
+          <label>Activity Title</label>
+          <input id="actTitle" value="${existing ? existing.title : ''}" />
+          <label>Type (e.g., Sports, Events, Cultural)</label>
+          <input id="actType" value="${existing ? existing.type || '' : ''}" />
+          <label>Date</label>
+          <input id="actDate" type="date" value="${existing ? existing.date : ''}" />
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+            <button class="ghost" id="cancelAct">Cancel</button>
+            <button class="btn" id="saveAct" data-index="${index !== undefined ? index : ''}">Save</button>
+          </div>
+        </div>`
+    }
+
+    async function saveTeacherActivity(teacherId, index) {
+      const title = document.getElementById('actTitle').value.trim()
+      const type = document.getElementById('actType').value.trim()
+      const date = document.getElementById('actDate').value
+      if (!title) { alert('Activity title is required'); return }
+
+      const activities = await loadTeacherExtracurricular(teacherId)
+      if (index !== null && index !== undefined && index !== '') {
+        activities[Number(index)] = { title, type, date }
+      } else {
+        activities.push({ title, type, date })
+      }
+
+      try {
+        const res = await API.updateExtracurricular(teacherId, activities)
+        if (!res.ok) throw new Error('Save failed')
+        await renderTeacherExtracurricular(teacherId)
+        closeModal()
+      } catch (e) {
+        alert('Failed to save activity')
+      }
+    }
+
+    async function deleteTeacherActivity(teacherId, index) {
+      if (!confirm('Delete this activity?')) return
+      const activities = await loadTeacherExtracurricular(teacherId)
+      activities.splice(Number(index), 1)
+      try {
+        const res = await API.updateExtracurricular(teacherId, activities)
+        if (!res.ok) throw new Error('Delete failed')
+        await renderTeacherExtracurricular(teacherId)
+      } catch (e) {
+        alert('Failed to delete activity')
+      }
+    }
+
+    document.getElementById('manageExtracurricular').addEventListener('click', async () => {
+      const teacherId = document.getElementById('teacherSelectExtracurricular').value
+      if (!teacherId) {
+        alert('Please select a teacher first')
+        return
+      }
+      currentTeacherForExtracurricular = Number(teacherId)
+      await renderTeacherExtracurricular(currentTeacherForExtracurricular)
+      openModal(extracurricularFormHtml())
+    })
+
+    document.addEventListener('click', async (e) => {
+      if (e.target.classList.contains('editExtracurricular') && currentTeacherForExtracurricular) {
+        const idx = Number(e.target.dataset.index)
+        const activities = await loadTeacherExtracurricular(currentTeacherForExtracurricular)
+        openModal(extracurricularFormHtml(activities[idx], idx))
+      }
+      if (e.target.classList.contains('deleteExtracurricular') && currentTeacherForExtracurricular) {
+        const idx = e.target.dataset.index
+        await deleteTeacherActivity(currentTeacherForExtracurricular, idx)
+      }
+      if (e.target.id === 'saveAct' && currentTeacherForExtracurricular) {
+        await saveTeacherActivity(currentTeacherForExtracurricular, e.target.dataset.index)
+      }
+      if (e.target.id === 'cancelAct') {
+        closeModal()
+      }
+    })
+
+    document.getElementById('teacherSelectExtracurricular').addEventListener('change', async (e) => {
+      const teacherId = e.target.value
+      if (teacherId) {
+        currentTeacherForExtracurricular = Number(teacherId)
+        await renderTeacherExtracurricular(currentTeacherForExtracurricular)
+      } else {
+        document.getElementById('extracurricularAdminList').innerHTML = ''
+      }
+    })
+
+    async function init() {
+      try {
+        const tdata = await API.listTeachers()
+        if (Array.isArray(tdata)) sampleTeachers = tdata
+      } catch (e) { sampleTeachers = [] }
+      try {
+        const sdata = await API.listSchedules()
+        if (Array.isArray(sdata)) schedules = sdata
+      } catch (e) { schedules = [] }
+      renderTeachers(sampleTeachers)
+      renderSchedules()
+
+      // Populate teacher dropdown for extracurricular
+      const teacherSelect = document.getElementById('teacherSelectExtracurricular')
+      teacherSelect.innerHTML = '<option value="">Select a teacher...</option>' +
+        sampleTeachers.map(t => `<option value="${t.id}">${t.name} — ${t.dept}</option>`).join('')
+    }
+
+    init()
+  </script>
+</body>
+
+</html>
