@@ -3,10 +3,33 @@ const express = require('express')
 const router = express.Router()
 const DB = require('../utils/db')
 
-// GET /api/schedules
+// Import ensureAdmin middleware if available
+let ensureAdmin = null
+try {
+  const auth = require('./auth')
+  if (auth && typeof auth.ensureAdmin === 'function') {
+    ensureAdmin = auth.ensureAdmin
+  }
+} catch (e) {
+  console.warn('ensureAdmin middleware not available')
+}
+
+// GET /api/schedules - publicly accessible
 router.get('/', async (req, res) => {
   try {
-    const items = await DB.read('schedules')
+    const { dept, category } = req.query
+    let items = await DB.read('schedules')
+
+    // Filter by department if provided
+    if (dept && dept !== 'All') {
+      items = items.filter(i => !i.dept || i.dept === 'All' || i.dept === dept)
+    }
+
+    // Filter by category if provided
+    if (category && category !== 'All') {
+      items = items.filter(i => i.category === category)
+    }
+
     return res.json(items)
   } catch (err) {
     console.error('schedules:list error', err)
@@ -14,7 +37,7 @@ router.get('/', async (req, res) => {
   }
 })
 
-// GET /api/schedules/:id
+// GET /api/schedules/:id - publicly accessible
 router.get('/:id', async (req, res) => {
   try {
     const id = Number(req.params.id)
@@ -27,8 +50,8 @@ router.get('/:id', async (req, res) => {
   }
 })
 
-// POST /api/schedules
-router.post('/', async (req, res) => {
+// POST /api/schedules - admin only
+router.post('/', ensureAdmin || ((req, res, next) => next()), async (req, res) => {
   try {
     const { teacherId, course, date, time, room } = req.body || {}
     if (!teacherId || !course || !date || !time) return res.status(400).json({ error: 'teacherId, course, date and time required' })
@@ -46,8 +69,8 @@ router.post('/', async (req, res) => {
   }
 })
 
-// PUT /api/schedules/:id
-router.put('/:id', async (req, res) => {
+// PUT /api/schedules/:id - admin only
+router.put('/:id', ensureAdmin || ((req, res, next) => next()), async (req, res) => {
   try {
     const id = Number(req.params.id)
     const { teacherId, course, date, time, room } = req.body || {}
@@ -67,8 +90,8 @@ router.put('/:id', async (req, res) => {
   }
 })
 
-// DELETE /api/schedules/:id
-router.delete('/:id', async (req, res) => {
+// DELETE /api/schedules/:id - admin only
+router.delete('/:id', ensureAdmin || ((req, res, next) => next()), async (req, res) => {
   try {
     const id = Number(req.params.id)
     const ok = await DB.deleteById('schedules', id)

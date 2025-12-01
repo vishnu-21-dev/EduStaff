@@ -175,5 +175,61 @@
         "date": "25025-11-30"
       }
     ]
+  },
+  {
+    "empId": "T1433",
+    "name": "Yashwanth",
+    "email": "yaasah@gmail.com",
+    "phone": "",
+    "dept": "",
+    "dob": "31012005",
+    "role": "teacher",
+    "pct": 0,
+    "updated": "2025-11-28",
+    "courses": [],
+    "createdAt": "2025-11-28T14:57:34.933Z",
+    "id": 11
+  },
+  {
+    "empId": "R400",
+    "name": "Ro",
+    "email": "ro@gmail.com",
+    "phone": "",
+    "dept": "cse",
+    "dob": "21072006",
+    "role": "teacher",
+    "pct": 0,
+    "updated": "2025-11-30",
+    "courses": [],
+    "createdAt": "2025-11-30T14:13:02.589Z",
+    "id": 12
+  },
+  {
+    "empId": "T0",
+    "name": "T0",
+    "email": "T0@gmail.com",
+    "phone": "",
+    "dept": "",
+    "dob": "21072006",
+    "role": "teacher",
+    "pct": 0,
+    "updated": "2025-12-01",
+    "courses": [],
+    "createdAt": "2025-12-01T15:37:44.285Z",
+    "id": 13
+  },
+  {
+    "empId": "T433",
+    "name": "U",
+    "email": "u@gmail.com",
+    "phone": "",
+    "dept": "ISE",
+    "dob": "21072006",
+    "role": "teacher",
+    "pct": 0,
+    "updated": "2025-12-01",
+    "courses": [],
+    "createdAt": "2025-12-01T16:47:16.518Z",
+    "id": 14
   }
 ]

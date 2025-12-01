@@ -76,7 +76,7 @@ function mountRoute(routePath, requirePath, protect = false, optional = false) {
 // mount other routes; mark protected routes that should use ensureAdmin
 mountRoute('/api/hods', './routes/hods', true)
 mountRoute('/api/teachers', './routes/teachers', false)
-mountRoute('/api/schedules', './routes/schedule', true)
+mountRoute('/api/schedules', './routes/schedule', false) // Allow teachers to read schedules
 mountRoute('/api/users', './routes/users', true)
 mountRoute('/api/syllabus', './routes/syllabus', true)
 // optional: uploads/utils or others (silence warnings if missing)

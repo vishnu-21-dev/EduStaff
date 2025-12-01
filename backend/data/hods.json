@@ -28,5 +28,29 @@
     "profilePic": "/uploads/profile_latha.jpg",
     "createdAt": "2025-05-20T08:30:00.000Z",
     "updatedAt": "2025-09-22T14:10:00.000Z"
+  },
+  {
+    "name": "Test HOD",
+    "email": "hod@gmail.com",
+    "dept": "Physics",
+    "courses": [
+      "EPS"
+    ],
+    "exp": 0,
+    "role": "hod",
+    "createdAt": "2025-11-30T14:20:22.613Z",
+    "id": 4
+  },
+  {
+    "name": "HOD",
+    "email": "hod@gmail.com",
+    "dept": "Data Science",
+    "courses": [
+      "Data science"
+    ],
+    "exp": 0,
+    "role": "hod",
+    "createdAt": "2025-11-30T14:22:38.595Z",
+    "id": 5
   }
 ]

@@ -8,7 +8,7 @@ const DB = require('../utils/db')
 router.get('/', async (req, res) => {
   try {
     const all = await DB.read('teachers')
-    const safe = all.map(t => ({ id: t.id, name: t.name, dept: t.dept, pct: t.pct || 0, updated: t.updated || 'N/A' }))
+    const safe = all.map(t => ({ id: t.id, empId: t.empId, name: t.name, dept: t.dept, pct: t.pct || 0, updated: t.updated || 'N/A' }))
     return res.json(safe)
   } catch (err) {
     console.error('teachers:list error', err)
@@ -63,6 +63,7 @@ router.get('/:id', async (req, res) => {
     // only expose allowed fields
     return res.json({
       id: t.id,
+      empId: t.empId,
       name: t.name,
       dept: t.dept,
       pct: t.pct,

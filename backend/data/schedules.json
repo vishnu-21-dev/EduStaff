@@ -84,5 +84,61 @@
     "time": "9:00",
     "room": "A520",
     "id": 7
+  },
+  {
+    "teacherId": 11,
+    "course": "OS",
+    "date": "2025-11-28",
+    "time": "9:00",
+    "room": "A5209",
+    "id": 8
+  },
+  {
+    "teacherId": 12,
+    "course": "OS",
+    "date": "2006-11-20",
+    "time": "9:00",
+    "room": "A5209",
+    "id": 9
+  },
+  {
+    "teacherId": 13,
+    "course": "OS",
+    "date": "2025-12-02",
+    "time": "10:00",
+    "room": "A520",
+    "id": 10
+  },
+  {
+    "teacherId": 13,
+    "course": "OS",
+    "date": "2025-10-22",
+    "time": "10:00",
+    "room": "A5209",
+    "id": 11
+  },
+  {
+    "teacherId": 13,
+    "course": "OS",
+    "date": "2025-12-21",
+    "time": "12:00",
+    "room": "A-98",
+    "id": 12
+  },
+  {
+    "teacherId": 13,
+    "course": "IoT",
+    "date": "2025-12-01",
+    "time": "12:00",
+    "room": "A-98",
+    "id": 13
+  },
+  {
+    "teacherId": 14,
+    "course": "IoT",
+    "date": "2025-12-12",
+    "time": "12:00",
+    "room": "A5209",
+    "id": 14
   }
 ]

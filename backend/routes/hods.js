@@ -7,7 +7,7 @@ const DB = require('../utils/db')
 router.get('/', async (req, res) => {
   try {
     const all = await DB.read('hods')
-    const safe = all.map(h => ({ id: h.id, name: h.name, dept: h.dept }))
+    const safe = all.map(h => ({ id: h.id, name: h.name, dept: h.dept, empId: h.empId || '' }))
     return res.json(safe)
   } catch (err) {
     console.error('hods:list error', err)
@@ -18,13 +18,16 @@ router.get('/', async (req, res) => {
 // POST /api/hods
 router.post('/', async (req, res) => {
   try {
-    const { name, email, dept, courses, exp } = req.body || {}
+    const { empId, name, email, dept, dob, courses, exp } = req.body || {}
     if (!name || !dept) return res.status(400).json({ error: 'name and dept required' })
+    if (!empId) return res.status(400).json({ error: 'empId required' })
 
     const newItem = await DB.insert('hods', {
+      empId,
       name,
       email: email || '',
       dept,
+      dob: dob || '',
       courses: Array.isArray(courses) ? courses : [],
       exp: exp || 0,
       role: 'hod',
