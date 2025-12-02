@@ -87,7 +87,7 @@
 
     <button class="btn" id="loginBtn">Login</button>
     <div class="err" id="err"></div>
-    <div class="small">Admins → backend · Teachers/HODs → local signup</div>
+
     <div class="small" style="margin-top:14px">Don't have an account? <a href="/signup.html"
         style="color:#0ea5e9;text-decoration:none;font-weight:600">Sign up here</a></div>
   </div>
@@ -149,13 +149,14 @@
           if (r.ok) {
             const res = await r.json()
             if (res.token || res.accessToken) {
-              localStorage.setItem('authToken', res.token || res.accessToken)
+              localStorage.setItem('hrd_token', res.token || res.accessToken) // Changed from 'authToken' to 'hrd_token'
             }
             localStorage.setItem('loggedInTeacher', JSON.stringify({
               empId: res.user?.empId || empId,
               name: res.user?.name || res.user?.fullName || empId,
               role: res.user?.role || 'admin',
-              dept: res.user?.dept
+              dept: res.user?.dept,
+              id: res.user?.id
             }))
             return { ok: true, res }
           }
@@ -179,20 +180,31 @@
         const pw = document.getElementById('pw').value.trim()
         if (!empId || !pw) { errEl.textContent = 'Enter both fields'; errEl.style.display = 'block'; return }
 
-        // 1) Admin check (backend)
-        const admin = await tryAdminLogin(empId, pw)
-        if (admin && admin.ok) {
-          window.location.href = '/hrd/schedule-admin.html'
+        // 1) Backend authentication (admin, HOD, or teacher)
+        const backendAuth = await tryAdminLogin(empId, pw)
+        if (backendAuth && backendAuth.ok) {
+          const userRole = backendAuth.res?.user?.role
+          if (userRole === 'admin') {
+            window.location.href = '/hrd/schedule-admin.html'
+          } else if (userRole === 'hod') {
+            window.location.href = '/hod/dashboard.html'
+          } else if (userRole === 'teacher') {
+            window.location.href = '/teachers/dashboard.html'
+          } else {
+            // Fallback for unknown roles
+            window.location.href = '/teachers/dashboard.html'
+          }
           return
         }
 
-        // 2) Local teacher/hod check
+        // 2) Local teacher/hod check (fallback for local storage users)
         const user = tryLocalLogin(empId, pw)
         if (user) {
           saveSession({ empId: user.empId, name: user.fullName, role: user.role, dept: user.dept })
           if (user.role === 'teacher') window.location.href = '/teachers/dashboard.html'
           else if (user.role === 'hod') window.location.href = '/hod/dashboard.html'
           else window.location.href = '/teachers/dashboard.html' // Fallback roleturn
+          return
         }
 
         // none matched

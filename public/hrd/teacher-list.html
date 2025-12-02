@@ -225,6 +225,7 @@
           <thead>
             <tr>
               <th>Name</th>
+              <th>Employee ID</th>
               <th>Dept</th>
               <th>Progress</th>
               <th>Last Update</th>
@@ -293,6 +294,7 @@
         const tr = document.createElement('tr')
         tr.innerHTML = `
           <td>${t.name}</td>
+          <td>${t.empId || '—'}</td>
           <td>${t.dept}</td>
           <td>${pctHtml(t.pct)}</td>
           <td>${t.updated}</td>
@@ -351,6 +353,7 @@
             <h3>${t.name}</h3><button class="ghost" id="closeModal">Close</button>
           </div>
           <div style="margin-top:12px">
+            <div class="muted">Employee ID</div><div style="font-weight:700;margin-bottom:8px">${t.empId || '—'}</div>
             <div class="muted">Department</div><div style="font-weight:700;margin-bottom:8px">${t.dept}</div>
             <div class="muted">Syllabus Completion</div><div style="font-weight:700;margin-bottom:8px">${t.pct}%</div>
             <div class="muted">Last Update</div><div style="font-weight:700;margin-bottom:8px">${t.updated}</div>
@@ -379,7 +382,7 @@
 
     exportBtn.addEventListener('click', () => {
       if (!teachers || teachers.length === 0) { alert('No teacher data to export'); return }
-      const rows = [['Name', 'Dept', 'Syllabus %', 'Last Update'], ...teachers.map(t => [t.name, t.dept, t.pct, t.updated])]
+      const rows = [['Name', 'Employee ID', 'Dept', 'Syllabus %', 'Last Update'], ...teachers.map(t => [t.name, t.empId || '', t.dept, t.pct, t.updated])]
       const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n')
       const blob = new Blob([csv], { type: 'text/csv' })
       const url = URL.createObjectURL(blob)

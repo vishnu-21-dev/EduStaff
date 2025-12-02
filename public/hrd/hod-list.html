@@ -209,6 +209,7 @@
           <thead>
             <tr>
               <th>Name</th>
+              <th>Employee ID</th>
               <th>Department</th>
               <th>Actions</th>
             </tr>
@@ -270,6 +271,7 @@
         const tr = document.createElement('tr')
         tr.innerHTML = `
       <td>${h.name}</td>
+      <td>${h.empId || '—'}</td>
       <td>${h.dept}</td>
       <td class="actions">
         <button class="ghost view" data-id="${h.id}">View</button>

@@ -94,8 +94,13 @@
       border: 1px solid rgba(255, 255, 255, 0.04);
       padding: 10px;
       border-radius: 8px;
-      color: inherit;
+      color: #e6eef6;
       font-size: 14px
+    }
+
+    select option {
+      background: #0b1220;
+      color: #e6eef6;
     }
 
     .row {
@@ -220,6 +225,11 @@
           <input id="courses" placeholder="e.g. OS, DBMS" />
         </div>
 
+        <div class="field">
+          <label for="dob">Date of Birth (for login password)</label>
+          <input id="dob" type="date" placeholder="DDMMYYYY" />
+        </div>
+
         <div class="row" style="margin-top:6px">
           <button id="createBtn" class="btn">Create User</button>
           <button id="resetBtn" class="ghost">Reset</button>
@@ -287,12 +297,22 @@
       const role = roleEl.value
       const dept = deptEl.value.trim()
       const courses = coursesEl.value.split(',').map(s => s.trim()).filter(Boolean)
+      const dobDate = document.getElementById('dob').value // YYYY-MM-DD format
+
+      // Convert DOB to DDMMYYYY format for login
+      let dob = ''
+      if (dobDate) {
+        const parts = dobDate.split('-')
+        if (parts.length === 3) {
+          dob = parts[2] + parts[1] + parts[0] // DDMMYYYY
+        }
+      }
 
       // Map to backend expected fields
       if (role === 'teacher') {
-        return { empId, fullName: name, email, phone: '', dept, dob: '', role, courses }
+        return { empId, fullName: name, email, phone: '', dept, dob, role, courses }
       } else if (role === 'hod') {
-        return { name, email, dept, courses, exp: 0 }
+        return { empId, name, email, dept, dob, courses, exp: 0 }
       } else {
         return { name, email, role, dept, courses }
       }
@@ -303,7 +323,14 @@
       const role = roleEl.value
       const payload = serializePayload()
 
-      if (role === 'teacher' && !payload.empId) { showErr('Employee ID required for teachers'); return }
+      if ((role === 'teacher' || role === 'hod') && !payload.empId) {
+        showErr('Employee ID required for teachers and HODs');
+        return
+      }
+      if ((role === 'teacher' || role === 'hod') && !payload.dob) {
+        showErr('Date of Birth required for teachers and HODs (used as login password)');
+        return
+      }
       if (!payload.name && !payload.fullName) { showErr('Name is required'); return }
 
       createBtn.disabled = true

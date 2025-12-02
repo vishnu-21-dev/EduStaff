@@ -138,7 +138,7 @@
 
     .cardgrid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 14px;
       padding: 6px
     }
@@ -305,7 +305,6 @@
         <a href="./todo.html"><i class="fa-solid fa-list-check"></i> My To-Do</a>
         <a href="./schedule.html"><i class="fa-solid fa-calendar-days"></i> Department Schedule</a>
         <a href="./classwork.html"><i class="fa-solid fa-folder-open"></i> Classwork</a>
-        <a href="./attendance.html"><i class="fa-solid fa-user-check"></i> Attendance</a>
         <a href="./syllabus.html"><i class="fa-solid fa-book"></i> Syllabus Tracker</a>
         <a href="./upload-classwork.html"><i class="fa-solid fa-upload"></i> Upload Materials</a>
         <a href="./edit-profile.html"><i class="fa-solid fa-user-pen"></i> Edit Profile</a>
@@ -351,11 +350,6 @@
           <div class="small">Schedule items (week)</div>
           <div class="num" id="k_schedule">0</div>
           <div class="small">this week</div>
-        </div>
-        <div class="card">
-          <div class="small">Attendance (today)</div>
-          <div class="num" id="k_att">—</div>
-          <div class="small">marked / not</div>
         </div>
       </div>
 
@@ -477,6 +471,9 @@
 
       const user = getLogged()
       if (!user) { location.href = './login.html'; return }
+
+      console.log('Logged in user:', user)
+
       const teachers = loadTeachers()
       const me = teachers.find(t => t.empId && t.empId.toLowerCase() === user.empId.toLowerCase()) || { fullName: user.name || user.empId, empId: user.empId, dept: user.dept || '', id: user.id } // Ensure we have ID if possible
 
@@ -484,16 +481,26 @@
       // For now, we'll fetch all schedules and filter by teacherId matching our ID.
       // We need to know our own ID to filter schedules correctly.
 
-      let myId = me.id
+      let myId = me.id || user.id // Try to get ID from local storage or session
+      console.log('Initial myId:', myId, 'from me.id:', me.id, 'user.id:', user.id)
+
       if (!myId) {
         // Try to find my ID from the full teacher list if not in local storage
         try {
           const res = await fetch('/api/teachers')
           const all = await res.json()
+          console.log('Fetched teachers from API:', all)
           const found = all.find(t => t.empId === me.empId)
-          if (found) myId = found.id
-        } catch (e) { }
+          if (found) {
+            myId = found.id
+            console.log('Found myId from API:', myId)
+          }
+        } catch (e) {
+          console.error('Failed to fetch teachers from API:', e)
+        }
       }
+
+      console.log('Final myId:', myId)
 
       function setProfile() {
         document.getElementById('avatarEl').textContent = (me.fullName || 'T').split(' ').map(s => s[0]).slice(0, 2).join('').toUpperCase()
@@ -518,8 +525,12 @@
         document.getElementById('k_classwork').textContent = cw.length || 0
 
         const sched = await loadSchedule()
+        console.log('All schedules from API:', sched)
+        console.log('Filtering schedules for teacherId:', myId)
+
         // Filter for ME
         const mySched = sched.filter(s => s.teacherId === myId)
+        console.log('My schedules after filtering:', mySched)
 
         const now = new Date(), start = new Date(now); start.setHours(0, 0, 0, 0); const end = new Date(start); end.setDate(start.getDate() + 7)
         const thisWeek = mySched.filter(s => {
@@ -528,8 +539,6 @@
           return d >= start && d <= end
         })
         document.getElementById('k_schedule').textContent = thisWeek.length || 0
-        const att = loadAttendance().find(a => a.empId === me.empId && a.date === (new Date().toISOString().slice(0, 10)))
-        document.getElementById('k_att').textContent = att ? 'Yes' : 'No'
         return mySched
       }
 
