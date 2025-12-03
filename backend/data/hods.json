@@ -52,5 +52,17 @@
     "role": "hod",
     "createdAt": "2025-11-30T14:22:38.595Z",
     "id": 5
+  },
+  {
+    "empId": "HOD3212",
+    "name": "HOD",
+    "email": "hod@gmail.com",
+    "dept": "DS",
+    "dob": "21072006",
+    "courses": [],
+    "exp": 0,
+    "role": "hod",
+    "createdAt": "2025-12-03T15:24:50.413Z",
+    "id": 6
   }
 ]

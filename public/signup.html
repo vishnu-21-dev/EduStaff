@@ -235,10 +235,18 @@
         // Try to sync with backend
         msg.textContent = 'Syncing with server...'
         try {
-          const res = await fetch('/api/teachers', {
+          // Route to correct endpoint based on role
+          const endpoint = role.toLowerCase() === 'hod' ? '/api/hods' : '/api/teachers'
+
+          // Prepare payload - HOD endpoint expects 'name' instead of 'fullName'
+          const payload = role.toLowerCase() === 'hod'
+            ? { empId, name: fullName, email, phone, dept, dob, role }
+            : record
+
+          const res = await fetch(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(record)
+            body: JSON.stringify(payload)
           })
           const data = await res.json()
 

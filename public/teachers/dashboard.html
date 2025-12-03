@@ -304,7 +304,7 @@
         <a href="./dashboard.html" class="active"><i class="fa-solid fa-gauge"></i> Dashboard</a>
         <a href="./todo.html"><i class="fa-solid fa-list-check"></i> My To-Do</a>
         <a href="./schedule.html"><i class="fa-solid fa-calendar-days"></i> Department Schedule</a>
-        <a href="./classwork.html"><i class="fa-solid fa-folder-open"></i> Classwork</a>
+
         <a href="./syllabus.html"><i class="fa-solid fa-book"></i> Syllabus Tracker</a>
         <a href="./upload-classwork.html"><i class="fa-solid fa-upload"></i> Upload Materials</a>
         <a href="./edit-profile.html"><i class="fa-solid fa-user-pen"></i> Edit Profile</a>
@@ -341,11 +341,7 @@
           <div class="num" id="k_todos">0</div>
           <div class="small">pending / done</div>
         </div>
-        <div class="card">
-          <div class="small">Classwork posted (dept)</div>
-          <div class="num" id="k_classwork">0</div>
-          <div class="small">available for students</div>
-        </div>
+
         <div class="card">
           <div class="small">Schedule items (week)</div>
           <div class="num" id="k_schedule">0</div>
@@ -372,19 +368,13 @@
             </table>
           </div>
 
-          <div class="section">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-              <div style="font-weight:700">Recent Classwork (dept)</div>
-              <div class="small">Latest uploads</div>
-            </div>
-            <div id="classworkRecent" class="small"></div>
-          </div>
+
 
           <div class="section">
             <div style="font-weight:700;margin-bottom:8px">Quick actions</div>
             <div style="display:flex;gap:10px;flex-wrap:wrap">
               <button class="linkbtn" onclick="location.href='./todo.html'">Open To-Do</button>
-              <button class="linkbtn" onclick="location.href='./classwork.html'">View Classwork</button>
+
               <button class="linkbtn" onclick="location.href='./upload-classwork.html'">Upload Material</button>
               <button class="linkbtn" onclick="location.href='./schedule.html'">View Schedule</button>
               <button class="linkbtn" onclick="location.href='./syllabus.html'">Syllabus Tracker</button>
@@ -521,8 +511,7 @@
         const todos = loadTodos(me.empId)
         const done = todos.filter(t => t.done).length
         document.getElementById('k_todos').textContent = `${todos.length ? todos.length - done : 0} / ${done}`
-        const cw = loadClasswork()
-        document.getElementById('k_classwork').textContent = cw.length || 0
+
 
         const sched = await loadSchedule()
         console.log('All schedules from API:', sched)
@@ -546,8 +535,7 @@
         const rows = []
         const todos = loadTodos(me.empId).slice(-6).reverse()
         todos.forEach(t => rows.push({ label: t.title, type: 'Todo', date: t.createdAt ? t.createdAt.split('T')[0] : '' }))
-        const cw = loadClasswork().slice(0, 6)
-        cw.forEach(c => rows.push({ label: c.title, type: 'Classwork', date: c.posted ? c.posted.split('T')[0] : '' }))
+
 
           // Use passed schedule
           (mySched || []).slice(0, 6).forEach(s => rows.push({ label: s.course, type: 'Schedule', date: s.date || '' }))
@@ -564,16 +552,7 @@
         })
       }
 
-      function renderClassworkRecent() {
-        const shared = loadClasswork() || []
-        const el = document.getElementById('classworkRecent')
-        if (!shared || shared.length === 0) { el.innerHTML = '<div class="empty">No classwork posted</div>'; return }
-        const html = shared.slice(0, 6).map(it => {
-          const dd = it.deadline ? ` · deadline: ${it.deadline}` : ''
-          return `<div style="padding:8px;border-bottom:1px solid #eef6ff"><div style="font-weight:700">${it.title}</div><div class="small">${it.category} · ${it.dept || 'All'}${dd}</div></div>`
-        }).join('')
-        el.innerHTML = html
-      }
+
 
       function renderUpcoming(mySched) {
         const today = new Date().toISOString().slice(0, 10)
@@ -757,7 +736,7 @@
         const mySched = await renderKPIs()
         renderActivity(mySched)
         renderUpcoming(mySched)
-        renderClassworkRecent()
+
         renderSyllabusPanel()
         renderExtracurricular()
       }
